@@ -360,33 +360,33 @@ class Modeling:
         return text
 
 
-    def cross_validate_model(self, model, X, y, cv: int = 5, scoring: str = 'f1_weighted') -> Dict[str, float]:
-        """
-        Perform cross-validation on a model.
+    # def cross_validate_model(self, model, X, y, cv: int = 5, scoring: str = 'f1_weighted') -> Dict[str, float]:
+    #     """
+    #     Perform cross-validation on a model.
         
-        Args:
-            model: Model to cross-validate
-            X: Features
-            y: Labels
-            cv (int): Number of cross-validation folds
-            scoring (str): Scoring metric
+    #     Args:
+    #         model: Model to cross-validate
+    #         X: Features
+    #         y: Labels
+    #         cv (int): Number of cross-validation folds
+    #         scoring (str): Scoring metric
             
-        Returns:
-            Dict[str, float]: Cross-validation results
-        """
-        print(f"Performing {cv}-fold cross-validation...")
+    #     Returns:
+    #         Dict[str, float]: Cross-validation results
+    #     """
+    #     print(f"Performing {cv}-fold cross-validation...")
         
-        cv_scores = cross_val_score(model, X, y, cv=cv, scoring=scoring)
+    #     cv_scores = cross_val_score(model, X, y, cv=cv, scoring=scoring)
         
-        results = {
-            'mean_score': cv_scores.mean(),
-            'std_score': cv_scores.std(),
-            'scores': cv_scores
-        }
+    #     results = {
+    #         'mean_score': cv_scores.mean(),
+    #         'std_score': cv_scores.std(),
+    #         'scores': cv_scores
+    #     }
         
-        print(f"Cross-validation {scoring}: {results['mean_score']:.4f} (+/- {results['std_score'] * 2:.4f})")
+    #     print(f"Cross-validation {scoring}: {results['mean_score']:.4f} (+/- {results['std_score'] * 2:.4f})")
         
-        return results
+    #     return results
     
     # def hyperparameter_tuning(self, model_type: str, X_train, y_train, 
     #                          param_grid: Dict = None, cv: int = 5) -> Any:
