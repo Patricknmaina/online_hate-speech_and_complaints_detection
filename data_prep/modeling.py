@@ -296,28 +296,33 @@ class Modeling:
         
         return comparison_df
     
-    def predict_new_text(self, text: str, vectorizer, model_name: str = None) -> str:
+    def predict_new_text(self, text: str, vectorizer, model_name_or_model = None) -> str:
         """
         Predict the label for a new text using the best model or specified model.
         
         Args:
             text (str): New text to classify
             vectorizer: Fitted vectorizer to transform the text
-            model_name (str): Name of the model to use (if None, uses best model)
+            model_name_or_model: Name of the model to use or the actual model object (if None, uses best model)
             
         Returns:
             str: Predicted label
         """
-        if model_name is None:
+        # Determine which model to use
+        if model_name_or_model is None:
             if self.best_model is None:
-                print("No best model available. Please specify a model name.")
+                print("No best model available. Please specify a model name or model object.")
                 return None
             model = self.best_model
-        else:
-            if model_name not in self.models:
-                print(f"Model '{model_name}' not found.")
+        elif isinstance(model_name_or_model, str):
+            # If it's a string, treat it as a model name
+            if model_name_or_model not in self.models:
+                print(f"Model '{model_name_or_model}' not found.")
                 return None
-            model = self.models[model_name]
+            model = self.models[model_name_or_model]
+        else:
+            # If it's not a string, treat it as a model object
+            model = model_name_or_model
         
         # Clean the text (using the same cleaning function from feature engineering)
         cleaned_text = self._clean_text(text)

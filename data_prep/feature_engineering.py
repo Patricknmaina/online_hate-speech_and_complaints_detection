@@ -408,8 +408,8 @@ class FeatureEngineering:
         self.handle_missing_labels(label_column)
         
         # Step 8: Save processed data if requested
-        if save_processed:
-            self.save_processed_data(output_path)
+        # if save_processed:
+        #     self.save_processed_data(output_path)
         
         # Step 9: Prepare data for modeling
         X, y = self.prepare_data_for_modeling()
@@ -421,8 +421,5 @@ class FeatureEngineering:
         X_train_vectorized, X_test_vectorized, vectorizer = self.vectorize_text(
             X_train, X_test, vectorizer_type=vectorizer_type, max_features=max_features
         )
-        
-        print("Feature engineering pipeline completed!")
-        print("=" * 50)
         
         return X_train_vectorized, X_test_vectorized, y_train, y_test, vectorizer 
