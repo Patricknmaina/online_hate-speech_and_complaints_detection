@@ -408,8 +408,8 @@ class FeatureEngineering:
         self.handle_missing_labels(label_column)
         
         # Step 8: Save processed data if requested
-        # if save_processed:
-        #     self.save_processed_data(output_path)
+        if save_processed:
+            self.save_processed_data(output_path)
         
         # Step 9: Prepare data for modeling
         X, y = self.prepare_data_for_modeling()

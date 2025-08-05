@@ -22,7 +22,7 @@ def train_and_save_model():
     
     # Step 1: Load data
     print("\n1. Loading data...")
-    data_loader = DataLoader('data/safaricom_data.csv')
+    data_loader = DataLoader('data/raw/labeled_data_openai.csv')
     data = data_loader.load_data()
     
     if data is None:
@@ -42,7 +42,7 @@ def train_and_save_model():
         test_size=0.2,
         random_state=42,
         save_processed=True,
-        output_path='data/cleaned_safaricom_data.csv'
+        output_path='data/raw/cleaned_and_processed_safaricom_data.csv'
     )
     
     # Step 3: Train models

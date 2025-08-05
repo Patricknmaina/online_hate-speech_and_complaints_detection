@@ -376,14 +376,15 @@ def check_api_health():
     except:
         return False, None
 
-def predict_tweet(tweet_text, user_id=None):
+def predict_tweet(tweet_text, user_id=None, use_transformer=True):
     """Make prediction using the API"""
     try:
         payload = {
             "text": tweet_text,
             "user_id": user_id
         }
-        response = requests.post(f"{API_BASE_URL}/predict", json=payload, timeout=10)
+        endpoint = "/predict/transformer" if use_transformer else "/predict"
+        response = requests.post(f"{API_BASE_URL}{endpoint}", json=payload, timeout=10)
         if response.status_code == 200:
             return response.json()
         else:
@@ -429,69 +430,45 @@ def create_probability_chart(probabilities):
     
     return fig
 
+
 def get_sentiment_color(prediction):
-    """Get color class based on prediction"""
+    """Get color class based on prediction label"""
     prediction_lower = prediction.lower()
-    if 'positive' in prediction_lower or 'good' in prediction_lower:
-        return 'positive'
-    elif 'negative' in prediction_lower or 'bad' in prediction_lower:
-        return 'negative'
-    elif 'complaint' in prediction_lower:
-        return 'complaint'
-    elif 'hate' in prediction_lower:
-        return 'hate-speech'
+    if "positive" in prediction_lower:
+        return "positive"
+    elif "complaint" in prediction_lower:
+        return "complaint"
+    elif "network" in prediction_lower or "reliability" in prediction_lower:
+        return "negative"
+    elif "privacy" in prediction_lower or "hate" in prediction_lower:
+        return "hate-speech"
     else:
-        return 'neutral'
+        return "neutral"
 
 def generate_proactive_response(tweet_text, prediction, confidence, probabilities):
-    """Generate proactive chatbot response based on tweet classification"""
+    """Generate AI chatbot-style response based on classification"""
     response_templates = {
-        'positive': {
-            'message': f"🎉 **Great news!** This tweet shows positive sentiment towards Safaricom with {confidence:.1%} confidence. This indicates satisfied customers!",
-            'suggestions': ["💡 Consider engaging with this customer to maintain positive relationship", "📈 This type of positive feedback can be used for marketing campaigns", "🤝 Respond with appreciation to encourage more positive engagement"]
-        },
-        'negative': {
-            'message': f"⚠️ **Customer Issue Detected** - This tweet shows negative sentiment with {confidence:.1%} confidence. Immediate attention may be required.",
-            'suggestions': ["🔍 Check if this is a known network or service issue", "📞 Consider reaching out to the customer directly", "📊 Monitor for similar complaints to identify patterns", "⚡ Prioritize resolution to prevent escalation"]
-        },
-        'complaint': {
-            'message': f"🚨 **Complaint Identified** - This tweet is classified as a complaint with {confidence:.1%} confidence. Customer service intervention needed.",
-            'suggestions': ["🚨 **Immediate Action**: Contact the customer to address their concern", "🔍 **Investigation**: Identify the root cause of the complaint", "📝 **Documentation**: Log the complaint for tracking and resolution", "⏰ **Follow-up**: Ensure timely resolution and customer satisfaction"]
-        },
-        'hate speech': {
-            'message': f"🚨 **Hate Speech Detected** - This content contains hate speech with {confidence:.1%} confidence. Requires immediate attention.",
-            'suggestions': ["🚫 **Content Moderation**: Consider flagging or removing this content", "📋 **Policy Review**: Check if this violates platform policies", "🛡️ **Community Safety**: Protect other users from harmful content", "📞 **Escalation**: May require legal or policy team review"]
-        },
-        'neutral': {
-            'message': f"📊 **Neutral Content** - This tweet appears neutral with {confidence:.1%} confidence. No immediate action required.",
-            'suggestions': ["👀 **Monitor**: Keep an eye on future interactions from this user", "📈 **Engagement**: Consider if this presents an opportunity for positive engagement", "📊 **Analytics**: Include in general sentiment analysis"]
-        }
+        "MPESA complaint": f"📢 It looks like you're having an MPESA issue. We're sorry for the inconvenience. Please rest assured that your transaction is being reviewed and we'll get back to you shortly.",
+        "Customer care complaint": f"🙋‍♂️ Thank you for reaching out to Safaricom Care. A customer representative will assist you shortly.",
+        "Network reliability problem": f"📶 Our network is currently experiencing technical issues in some areas. Our technical team is working round the clock to restore full service.",
+        "Data protection and privacy concern": f"🔐 Thank you for raising this concern. Safaricom takes data protection seriously and we are reviewing the matter.",
+        "Internet or airtime bundle complaint": f"📲 We acknowledge the reported internet bundles problem. Our team is looking to improve the data deals and coverage for ease of using internet bundles.",
+        "Neutral": f"🎉 We're glad you're enjoying our services! Your positive feedback keeps us going. Thank you!",
+        "Hate Speech": f"🤖 We are sorry if our services are not up to per with your expectations. We are working round the clock to provide reliable services."
     }
-    prediction_lower = prediction.lower()
-    matched_category = None
-    for category in response_templates.keys():
-        if category in prediction_lower:
-            matched_category = category
-            break
-    if not matched_category:
-        highest_prob_class = max(probabilities, key=probabilities.get)
-        for category in response_templates.keys():
-            if category in highest_prob_class.lower():
-                matched_category = category
-                break
-    if not matched_category:
-        matched_category = 'neutral'
-    template = response_templates[matched_category]
-    response = {
-        'message': template['message'],
-        'suggestions': template['suggestions'],
-        'category': matched_category,
-        'confidence': confidence,
-        'tweet_text': tweet_text
-    }
-    return response
 
-def chatbot_response(user_input):
+    # If the prediction is not in the templates, default to 'Neutral'
+    message = response_templates.get(prediction, response_templates["Neutral"])
+
+    return {
+        "message": message,
+        "category": prediction,
+        "confidence": confidence,
+        "tweet_text": tweet_text
+    }
+
+
+def chatbot_response(user_input, use_transformer=True):
     """Generate chatbot response using Rasa or fallback"""
     if RASA_AVAILABLE:
         rasa_client = RasaClient()
@@ -499,10 +476,10 @@ def chatbot_response(user_input):
             rasa_response = rasa_client.send_message(user_input)
             if rasa_response and len(rasa_response) > 0:
                 bot_message = rasa_response[0].get('text', 'Sorry, I couldn\'t process that.')
-                result = predict_tweet(user_input)
+                result = predict_tweet(user_input, use_transformer=use_transformer)
                 return bot_message, result
             else:
-                result = predict_tweet(user_input)
+                result = predict_tweet(user_input, use_transformer=use_transformer)
                 if result:
                     proactive_response = generate_proactive_response(
                         user_input, result['prediction'], result['confidence'], result['probabilities']
@@ -510,7 +487,7 @@ def chatbot_response(user_input):
                     return proactive_response['message'], result
                 else:
                     return "Sorry, I couldn't analyze that tweet. Please try again.", None
-    result = predict_tweet(user_input)
+    result = predict_tweet(user_input, use_transformer=use_transformer)
     if result:
         proactive_response = generate_proactive_response(
             user_input, result['prediction'], result['confidence'], result['probabilities']
@@ -518,12 +495,31 @@ def chatbot_response(user_input):
         return proactive_response['message'], result
     else:
         return "Sorry, I couldn't analyze that tweet. Please try again.", None
+    
+# --- Callback function to handle chat submission ---
+def handle_chat_submit():
+    """Handles the 'Send' button click to process user input and clear the text box."""
+    if st.session_state.chat_input.strip():
+        user_message = st.session_state.chat_input.strip()
+        st.session_state.chat_history.append({'role': 'user', 'content': user_message})
+        
+        # Determine which model to use from the radio button state
+        use_transformer_flag = (st.session_state.get('model_choice', 'Transformer') == "Transformer")
+        
+        bot_response, analysis_result = chatbot_response(user_message, use_transformer_flag)
+        st.session_state.chat_history.append({'role': 'assistant', 'content': bot_response})
+        
+        # This line is the key fix: We set the state of the input widget to an empty string.
+        # This is allowed within a callback and will clear the box on the next re-run.
+        st.session_state.chat_input = ""
+        # We don't need `st.experimental_rerun()` here, as Streamlit automatically re-runs
+        # after a session state change initiated by a widget.
 
 def main():
     # Header
     st.markdown('<h1 class="main-header">📱 Safaricom Tweet Classifier</h1>', unsafe_allow_html=True)
     st.markdown('<p class="sub-header">Analyze tweets directed towards Safaricom for sentiment and classification</p>', unsafe_allow_html=True)
-    
+
     # Check API health
     api_healthy, health_info = check_api_health()
     
@@ -532,6 +528,9 @@ def main():
         return
     
     # Sidebar with enhanced visibility
+    use_transformer = st.radio("⚙️ Choose Model", ["Transformer", "Sklearn"], index=0)
+    use_transformer_flag = (use_transformer == "Transformer")
+
     with st.sidebar:
         st.title("🔧 Settings")
         
@@ -541,17 +540,33 @@ def main():
             st.session_state.theme = 'light' if st.session_state.theme == 'dark' else 'dark'
             st.rerun()
 
-        # Model info
-        model_info = get_model_info()
-        if model_info:
-            st.subheader("Model Information")
-            st.markdown(f"""
-            <div class="info-box">
-                <div><span class="info-label">Model Type:</span> {model_info.get('model_type', 'Unknown')}</div>
-                <div><span class="info-label">Classes:</span> {', '.join(model_info.get('classes', []))}</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
+    # Call get_model_info()
+    model_info = get_model_info()
+
+    # Determine selected model name from toggle
+    selected_model = "Transformer" if use_transformer_flag else "Sklearn"
+    selected_model_type = model_info.get('transformer_model_type') if use_transformer_flag else model_info.get('sklearn_model_type')
+    selected_classes = model_info.get('transformer_classes') if use_transformer_flag else model_info.get('classes')
+
+    # Convert class list or dict to comma-separated string
+    if isinstance(selected_classes, dict):  # transformer_classes is a dict like {0: "MPESA Complaint", ...}
+        class_names = ', '.join(selected_classes.values())
+    elif isinstance(selected_classes, list):
+        class_names = ', '.join(selected_classes)
+    else:
+        class_names = "Unknown"
+
+    # Display in sidebar with highlight for selected model
+    with st.sidebar:
+        st.subheader("Model Information")
+        st.markdown(f"""
+        <div class="info-box">
+            <div><span class="info-label">Selected Model:</span> <span style="color:#81d4fa;"><strong>{selected_model}</strong></span></div>
+            <div><span class="info-label">Model Type:</span> {selected_model_type or 'Unknown'}</div>
+            <div><span class="info-label">Classes:</span> {class_names}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
         # API status
         st.subheader("API Status")
         if api_healthy:
@@ -623,7 +638,7 @@ def main():
         if st.button("🔍 Analyze Tweet", type="primary"):
             if tweet_input.strip():
                 with st.spinner("Analyzing tweet..."):
-                    result = predict_tweet(tweet_input, user_id)
+                    result = predict_tweet(tweet_input, user_id, use_transformer_flag)
                     if result:
                         st.success("✅ Analysis completed!")
                         prediction = result['prediction']
@@ -637,7 +652,10 @@ def main():
                         </div>
                         """, unsafe_allow_html=True)
                         proactive_response = generate_proactive_response(
-                            tweet_input, prediction, confidence, probabilities
+                            tweet_input, 
+                            result['prediction'], 
+                            result['confidence'], 
+                            result['probabilities']
                         )
                         st.markdown(f"""
                         <div class="proactive-response">
@@ -645,14 +663,6 @@ def main():
                             <p>{proactive_response['message']}</p>
                         </div>
                         """, unsafe_allow_html=True)
-                        st.subheader("💡 Recommended Actions")
-                        for suggestion in proactive_response['suggestions']:
-                            st.markdown(f"""
-                            <div class="suggestion-box">
-                                {suggestion}
-                            </div>
-                            """, unsafe_allow_html=True)
-                        st.session_state.last_proactive_response = proactive_response
                         st.plotly_chart(create_probability_chart(probabilities), use_container_width=True)
                         st.subheader("📊 Detailed Probabilities")
                         prob_df = pd.DataFrame(list(probabilities.items()), columns=['Class', 'Probability'])
@@ -675,7 +685,7 @@ def main():
                         results = []
                         with st.spinner("Analyzing tweets..."):
                             for index, row in df.iterrows():
-                                result = predict_tweet(row['text'])
+                                result = predict_tweet(row['text'], use_transformer=use_transformer_flag)
                                 if result:
                                     results.append({
                                         'text': row['text'],
@@ -711,6 +721,8 @@ def main():
     with col2:
         st.subheader("🤖 AI Assistant")
         st.write("**Chat with me about Safaricom tweets!**")
+        
+        # Chat container to display messages
         chat_container = st.container()
         
         with chat_container:
@@ -729,22 +741,36 @@ def main():
                         {message['content']}
                     </div>
                     """, unsafe_allow_html=True)
+
+        # Chat input and buttons
+        # The key to clearing the input is the use of the `on_change` parameter or a callback.
+        # We will use a callback function on the `text_input` and the `button`.
         
-        chat_input = st.text_input("Ask me about a tweet:", placeholder="Type a tweet or question...", key="chat_input")
-        
+        # Using a text_input with an on_change callback is the cleanest way.
+        chat_input = st.text_input(
+            "Ask me about a tweet:", 
+            placeholder="Type a tweet or question...", 
+            key="chat_input",
+            on_change=handle_chat_submit
+        )
+
         col_send, col_clear = st.columns([1, 1])
+
         with col_send:
-            if st.button("📤 Send", key="chat_send", use_container_width=True):
-                if chat_input.strip():
-                    st.session_state.chat_history.append({'role': 'user', 'content': chat_input})
-                    bot_response, analysis_result = chatbot_response(chat_input)
-                    st.session_state.chat_history.append({'role': 'assistant', 'content': bot_response})
-                    st.session_state.chat_input = ""
-                    st.rerun()
+            # We add a button that also triggers the callback.
+            # `on_click` is the recommended way to associate a button with a function.
+            st.button(
+                "📤 Send", 
+                key="chat_send", 
+                on_click=handle_chat_submit, 
+                use_container_width=True
+            )
         
         with col_clear:
             if st.button("🗑️ Clear", key="clear_chat", use_container_width=True):
                 st.session_state.chat_history = []
+                # Clear the chat input as well.
+                st.session_state.chat_input = ""
                 st.rerun()
         
         st.markdown("---")
@@ -752,8 +778,10 @@ def main():
         sample_questions = ["Safaricom network is very slow today", "Thank you Safaricom for the excellent service!", "Safaricom customer service was very helpful", "I hate Safaricom, they are stealing our money"]
         for i, question in enumerate(sample_questions):
             if st.button(f"📝 {question[:30]}{'...' if len(question) > 30 else ''}", key=f"sample_{i}", use_container_width=True):
+                # When a sample question is clicked, we directly update the state and rerun.
                 st.session_state.chat_history.append({'role': 'user', 'content': question})
-                bot_response, analysis_result = chatbot_response(question)
+                use_transformer_flag = (st.session_state.get('model_choice', 'Transformer') == "Transformer")
+                bot_response, analysis_result = chatbot_response(question, use_transformer_flag)
                 st.session_state.chat_history.append({'role': 'assistant', 'content': bot_response})
                 st.rerun()
 

@@ -147,7 +147,7 @@ class Modeling:
         precision = precision_score(y_test, y_pred, average='weighted', zero_division=0)
         recall = recall_score(y_test, y_pred, average='weighted', zero_division=0)
         f1 = f1_score(y_test, y_pred, average='weighted', zero_division=0)
-        
+
         # Create confusion matrix
         cm = confusion_matrix(y_test, y_pred)
         
