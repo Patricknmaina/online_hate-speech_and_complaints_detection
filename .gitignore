@@ -28,3 +28,7 @@ labeled_data_v5.csv
 # pre-trained models (too large for commit)
 models/bert_model/
 models/xlm_roberta_model/
+
+# frontend
+frontend/
+start-app.sh

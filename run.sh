@@ -28,7 +28,9 @@ cd ../..
 echo "Starting Streamlit app..."
 cd Streamlit/
 # streamlit run app.py &
-streamlit run app_final.py &
+# streamlit run app_v2.py &
+# streamlit run Home.py &
+streamlit run app_v3.py &
 STREAMLIT_PID=$!
 cd ..
 

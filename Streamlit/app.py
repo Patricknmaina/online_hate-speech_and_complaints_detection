@@ -1,6 +1,6 @@
 """
-This is the Streamlit app for the Safaricom Tweet Classifier.
-It contains the user interface for the app, as well as the FastAPI API endpoint integration.
+This is the Streamlit app for the Safaricom Tweet Classifier,
+modified to include a multi-layered UI with different pages.
 """
 
 # Import necessary libraries
@@ -14,6 +14,8 @@ from datetime import datetime
 import time
 import sys
 import os
+import html # Import the html module for escaping content
+import re   # Import re for regular expressions
 
 # Add the parent directory to Python path to find AI_powered_chatbot
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -27,8 +29,8 @@ except ImportError as e:
 
 # Page configuration
 st.set_page_config(
-    page_title="Safaricom Tweet Classifier",
-    page_icon="📱",
+    page_title="Safarimeter: The Pulse of Public Opinion",
+    page_icon="💬",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -36,6 +38,24 @@ st.set_page_config(
 # Initialize theme state
 if 'theme' not in st.session_state:
     st.session_state.theme = 'dark'
+
+# --- Utility function to strip HTML tags ---
+def strip_html_tags(text):
+    """Remove html tags from a string, including HTML entities."""
+    if not isinstance(text, str):
+        return str(text) # Ensure it's a string before processing
+    
+    # First, decode HTML entities to prevent them from being left behind
+    # e.g., &lt;div&gt; becomes <div>
+    text = html.unescape(text)
+    
+    # Then, remove HTML tags
+    clean = re.compile('<.*?>')
+    text = re.sub(clean, '', text)
+    
+    # Remove any remaining multiple spaces or leading/trailing whitespace
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
 
 # --- Dynamic CSS based on theme ---
 def get_css(theme):
@@ -197,6 +217,101 @@ def get_css(theme):
             .chat-container::-webkit-scrollbar-track { background: #222; border-radius: 4px; }
             .chat-container::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
             .chat-container::-webkit-scrollbar-thumb:hover { background: #777; }
+
+            /* New styles for homepage appeal */
+            .hero-section {
+                background: linear-gradient(135deg, #1a4e5c 0%, #0e1117 100%); /* Gradient background */
+                padding: 2.5rem 2rem; /* Adjusted padding */
+                border-radius: 15px;
+                text-align: center;
+                margin-bottom: 2.5rem; /* Adjusted margin */
+                box-shadow: 0 6px 20px rgba(0,0,0,0.4); /* Stronger shadow */
+            }
+            .hero-section h1 {
+                font-size: 3.2rem; /* Slightly larger font */
+                color: #e0f2f7; /* Lighter blue for contrast */
+                margin-bottom: 0.6rem; /* Adjusted margin */
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* Text shadow */
+            }
+            .hero-section p {
+                font-size: 1.15rem; /* Slightly larger font */
+                color: #b3e5fc; /* Slightly darker blue for subtext */
+                max-width: 750px; /* Adjusted max-width */
+                margin: 0 auto 2rem auto; /* Adjusted margin */
+            }
+            .feature-card {
+                background-color: #2e3035;
+                padding: 1.4rem; /* Adjusted padding */
+                border-radius: 12px; /* Slightly more rounded */
+                margin-bottom: 1.2rem; /* Adjusted margin */
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.25); /* Stronger shadow */
+                border: 1px solid #3a3f4a;
+                transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth transition */
+            }
+            .feature-card:hover {
+                transform: translateY(-5px); /* Lift effect on hover */
+                box-shadow: 0 8px 25px rgba(0,0,0,0.4); /* More prominent shadow on hover */
+            }
+            .feature-card h3 {
+                color: #81d4fa; /* Light blue for feature titles */
+                margin-bottom: 0.8rem; /* Adjusted margin */
+                font-size: 1.35rem; /* Adjusted font size */
+            }
+            .feature-card p {
+                font-size: 1rem; /* Adjusted font size */
+                line-height: 1.6; /* Adjusted line height */
+                color: #c0c0c0;
+            }
+            .how-it-works-section {
+                background-color: #1e2025;
+                padding: 2rem; /* Adjusted padding */
+                border-radius: 15px;
+                margin-top: 2.5rem; /* Adjusted margin */
+                box-shadow: 0 6px 20px rgba(0,0,0,0.3); /* Stronger shadow */
+            }
+            .how-it-works-section h2 {
+                color: #64b5f6;
+                text-align: center;
+                margin-bottom: 2rem; /* Adjusted margin */
+            }
+            .how-it-works-step {
+                background-color: #2e3035;
+                padding: 1.2rem; /* Adjusted padding */
+                border-radius: 10px;
+                margin-bottom: 1rem; /* Adjusted margin */
+                border-left: 6px solid #64b5f6; /* Thicker border */
+                transition: background-color 0.2s ease-in-out;
+            }
+            .how-it-works-step:hover {
+                background-color: #3a3f4a; /* Slightly lighter background on hover */
+            }
+            .how-it-works-step p {
+                font-size: 1rem; /* Adjusted font size */
+                color: #f0f2f6;
+            }
+            .call-to-action-button {
+                background-color: #4CAF50; /* Green for call to action */
+                color: white;
+                padding: 0.9rem 1.8rem; /* Larger padding */
+                border-radius: 10px; /* More rounded */
+                font-size: 1.3rem; /* Larger font */
+                text-align: center;
+                display: block;
+                margin: 2.5rem auto 0 auto; /* Adjusted margin */
+                width: 60%; /* Slightly wider */
+                max-width: 350px; /* Adjusted max-width */
+                transition: background-color 0.3s ease, transform 0.2s ease;
+            }
+            .call-to-action-button:hover {
+                background-color: #45a049;
+                transform: translateY(-3px); /* Subtle lift on hover */
+                cursor: pointer;
+            }
+
         </style>
         """
     else: # Light Theme
@@ -358,6 +473,100 @@ def get_css(theme):
             .chat-container::-webkit-scrollbar-track { background: #f1f3f5; border-radius: 4px; }
             .chat-container::-webkit-scrollbar-thumb { background: #bdbdbd; border-radius: 4px; }
             .chat-container::-webkit-scrollbar-thumb:hover { background: #a0a0a0; }
+
+            /* New styles for homepage appeal */
+            .hero-section {
+                background: linear-gradient(135deg, #e0f2f7 0%, #ffffff 100%); /* Gradient background */
+                padding: 2.5rem 2rem; /* Adjusted padding */
+                border-radius: 15px;
+                text-align: center;
+                margin-bottom: 2.5rem; /* Adjusted margin */
+                box-shadow: 0 6px 20px rgba(0,0,0,0.15); /* Stronger shadow */
+            }
+            .hero-section h1 {
+                font-size: 3.2rem; /* Slightly larger font */
+                color: #1f77b4;
+                margin-bottom: 0.6rem; /* Adjusted margin */
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.1); /* Text shadow */
+            }
+            .hero-section p {
+                font-size: 1.15rem; /* Slightly larger font */
+                color: #555555;
+                max-width: 750px; /* Adjusted max-width */
+                margin: 0 auto 2rem auto; /* Adjusted margin */
+            }
+            .feature-card {
+                background-color: #f8f9fa;
+                padding: 1.4rem; /* Adjusted padding */
+                border-radius: 12px; /* Slightly more rounded */
+                margin-bottom: 1.2rem; /* Adjusted margin */
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Stronger shadow */
+                border: 1px solid #e0e0e0;
+                transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth transition */
+            }
+            .feature-card:hover {
+                transform: translateY(-5px); /* Lift effect on hover */
+                box-shadow: 0 8px 25px rgba(0,0,0,0.2); /* More prominent shadow on hover */
+            }
+            .feature-card h3 {
+                color: #17a2b8; /* Teal for feature titles */
+                margin-bottom: 0.8rem; /* Adjusted margin */
+                font-size: 1.35rem; /* Adjusted font size */
+            }
+            .feature-card p {
+                font-size: 1rem; /* Adjusted font size */
+                line-height: 1.6; /* Adjusted line height */
+                color: #444444;
+            }
+            .how-it-works-section {
+                background-color: #f1f3f5;
+                padding: 2rem; /* Adjusted padding */
+                border-radius: 15px;
+                margin-top: 2.5rem; /* Adjusted margin */
+                box-shadow: 0 6px 20px rgba(0,0,0,0.15); /* Stronger shadow */
+            }
+            .how-it-works-section h2 {
+                color: #1f77b4;
+                text-align: center;
+                margin-bottom: 2rem; /* Adjusted margin */
+            }
+            .how-it-works-step {
+                background-color: #ffffff;
+                padding: 1.2rem; /* Adjusted padding */
+                border-radius: 10px;
+                margin-bottom: 1rem; /* Adjusted margin */
+                border-left: 6px solid #1f77b4; /* Thicker border */
+                transition: background-color 0.2s ease-in-out;
+            }
+            .how-it-works-step:hover {
+                background-color: #e6e8eb; /* Slightly darker background on hover */
+            }
+            .how-it-works-step p {
+                font-size: 1rem; /* Adjusted font size */
+                color: #333333;
+            }
+            .call-to-action-button {
+                background-color: #28a745; /* Green for call to action */
+                color: white;
+                padding: 0.9rem 1.8rem; /* Larger padding */
+                border-radius: 10px; /* More rounded */
+                font-size: 1.3rem; /* Larger font */
+                text-align: center;
+                display: block;
+                margin: 2.5rem auto 0 auto; /* Adjusted margin */
+                width: 60%; /* Slightly wider */
+                max-width: 350px; /* Adjusted max-width */
+                transition: background-color 0.3s ease, transform 0.2s ease;
+            }
+            .call-to-action-button:hover {
+                background-color: #218838;
+                transform: translateY(-3px); /* Subtle lift on hover */
+                cursor: pointer;
+            }
         </style>
         """
 
@@ -470,31 +679,50 @@ def generate_proactive_response(tweet_text, prediction, confidence, probabilitie
 
 def chatbot_response(user_input, use_transformer=True):
     """Generate chatbot response using Rasa or fallback"""
+    bot_message = ""
+    analysis_result = None
+
     if RASA_AVAILABLE:
         rasa_client = RasaClient()
         if rasa_client.is_available():
             rasa_response = rasa_client.send_message(user_input)
             if rasa_response and len(rasa_response) > 0:
                 bot_message = rasa_response[0].get('text', 'Sorry, I couldn\'t process that.')
-                result = predict_tweet(user_input, use_transformer=use_transformer)
-                return bot_message, result
+                # Strip HTML tags from the Rasa response
+                bot_message = strip_html_tags(bot_message)
+                analysis_result = predict_tweet(user_input, use_transformer=use_transformer)
             else:
-                result = predict_tweet(user_input, use_transformer=use_transformer)
-                if result:
+                # Fallback to proactive response if Rasa is available but doesn't respond
+                analysis_result = predict_tweet(user_input, use_transformer=use_transformer)
+                if analysis_result:
                     proactive_response = generate_proactive_response(
-                        user_input, result['prediction'], result['confidence'], result['probabilities']
+                        user_input, analysis_result['prediction'], analysis_result['confidence'], analysis_result['probabilities']
                     )
-                    return proactive_response['message'], result
+                    bot_message = strip_html_tags(proactive_response['message'])
                 else:
-                    return "Sorry, I couldn't analyze that tweet. Please try again.", None
-    result = predict_tweet(user_input, use_transformer=use_transformer)
-    if result:
-        proactive_response = generate_proactive_response(
-            user_input, result['prediction'], result['confidence'], result['probabilities']
-        )
-        return proactive_response['message'], result
+                    bot_message = "Sorry, I couldn't analyze that tweet. Please try again."
+        else:
+            # Fallback if Rasa client is not available
+            analysis_result = predict_tweet(user_input, use_transformer=use_transformer)
+            if analysis_result:
+                proactive_response = generate_proactive_response(
+                    user_input, analysis_result['prediction'], analysis_result['confidence'], analysis_result['probabilities']
+                )
+                bot_message = strip_html_tags(proactive_response['message'])
+            else:
+                bot_message = "Sorry, I couldn't analyze that tweet. Please try again."
     else:
-        return "Sorry, I couldn't analyze that tweet. Please try again.", None
+        # If Rasa is not available at all
+        analysis_result = predict_tweet(user_input, use_transformer=use_transformer)
+        if analysis_result:
+            proactive_response = generate_proactive_response(
+                user_input, analysis_result['prediction'], analysis_result['confidence'], analysis_result['probabilities']
+            )
+            bot_message = strip_html_tags(proactive_response['message'])
+        else:
+            bot_message = "Sorry, I couldn't analyze that tweet. Please try again."
+    
+    return bot_message, analysis_result
     
 # --- Callback function to handle chat submission ---
 def handle_chat_submit():
@@ -509,281 +737,452 @@ def handle_chat_submit():
         bot_response, analysis_result = chatbot_response(user_message, use_transformer_flag)
         st.session_state.chat_history.append({'role': 'assistant', 'content': bot_response})
         
-        # This line is the key fix: We set the state of the input widget to an empty string.
-        # This is allowed within a callback and will clear the box on the next re-run.
+        # Clear the chat input after submission
         st.session_state.chat_input = ""
         # We don't need `st.experimental_rerun()` here, as Streamlit automatically re-runs
         # after a session state change initiated by a widget.
 
-def main():
-    # Header
-    st.markdown('<h1 class="main-header">📱 Safaricom Tweet Classifier</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">Analyze tweets directed towards Safaricom for sentiment and classification</p>', unsafe_allow_html=True)
+# --- Callback for clearing chat ---
+def clear_chat_callback():
+    st.session_state.chat_history = []
+    # Set a flag to clear the input on the next rerun
+    st.session_state.clear_input_on_next_run = True
+    st.rerun()
 
-    # Check API health
-    api_healthy, health_info = check_api_health()
+# --- Page Functions ---
+
+# Callback for "Get Started Now!" button
+def navigate_to_tweet_analysis():
+    st.session_state.current_page = "📝 Tweet Analysis"
+    st.rerun() # Force a rerun to immediately update the page
+
+def home_page():
+    """Displays the home page with overall app information and enhanced styling."""
     
-    if not api_healthy:
-        st.error("⚠️ API is not running. Please initialize the FastAPI server.")
-        return
-    
-    # Sidebar with enhanced visibility
-    use_transformer = st.radio("⚙️ Choose Model", ["Transformer", "Sklearn"], index=0)
-    use_transformer_flag = (use_transformer == "Transformer")
-
-    with st.sidebar:
-        st.title("🔧 Settings")
-        
-        # Theme Toggle
-        theme_icon = "☀️" if st.session_state.theme == 'dark' else "🌙"
-        if st.button(f"{theme_icon} Toggle Theme", use_container_width=True):
-            st.session_state.theme = 'light' if st.session_state.theme == 'dark' else 'dark'
-            st.rerun()
-
-    # Call get_model_info()
-    model_info = get_model_info()
-
-    # Determine selected model name from toggle
-    selected_model = "Transformer" if use_transformer_flag else "Sklearn"
-    selected_model_type = model_info.get('transformer_model_type') if use_transformer_flag else model_info.get('sklearn_model_type')
-    selected_classes = model_info.get('transformer_classes') if use_transformer_flag else model_info.get('classes')
-
-    # Convert class list or dict to comma-separated string
-    if isinstance(selected_classes, dict):  # transformer_classes is a dict like {0: "MPESA Complaint", ...}
-        class_names = ', '.join(selected_classes.values())
-    elif isinstance(selected_classes, list):
-        class_names = ', '.join(selected_classes)
-    else:
-        class_names = "Unknown"
-
-    # Display in sidebar with highlight for selected model
-    with st.sidebar:
-        st.subheader("Model Information")
-        st.markdown(f"""
-        <div class="info-box">
-            <div><span class="info-label">Selected Model:</span> <span style="color:#81d4fa;"><strong>{selected_model}</strong></span></div>
-            <div><span class="info-label">Model Type:</span> {selected_model_type or 'Unknown'}</div>
-            <div><span class="info-label">Classes:</span> {class_names}</div>
+    # Hero Section
+    st.markdown(
+        """
+        <div class="hero-section">
+            <h1>Safarimeter: The Pulse of Public Opinion 📲</h1>
+            <p>AI that listens. Instantly spot complaints, understand sentiment, and take action — all from Twitter conversations.</p>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+        unsafe_allow_html=True
+    )
+    # The button needs to be outside the markdown for Streamlit to handle its click
+    st.button("Get Started Now!", key="get_started_button", on_click=navigate_to_tweet_analysis, use_container_width=True)
 
-        # API status
-        st.subheader("API Status")
-        if api_healthy:
-            st.markdown("""
-            <div class="status-box status-connected">
-                ✅ <strong>FastAPI API Endpoint Connected</strong>
+
+    st.markdown("---")
+    st.markdown('<h2 class="sub-header">🪄 Platform Capabilities</h2>', unsafe_allow_html=True)
+    
+    # Key Functionalities presented in columns/cards
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.markdown(
+            """
+            <div class="feature-card">
+                <h3>📝 Tweet Analysis</h3>
+                <p>Classify individual tweets to understand their sentiment, and identify specific issues like network reliability complaints, MPESA complaints, Customer care issues or hate speech towards Safaricom. Get instant proactive responses.</p>
             </div>
-            """, unsafe_allow_html=True)
-            if health_info:
-                st.markdown(f"""
-                <div class="info-box">
-                    <div><span class="info-label">Status:</span> {health_info.get('status', 'Unknown')}</div>
-                </div>
-                """, unsafe_allow_html=True)
+            """,
+            unsafe_allow_html=True
+        )
+    with col2:
+        st.markdown(
+            """
+            <div class="feature-card">
+                <h3>📋 Batch Analysis</h3>
+                <p>Upload CSV files containing multiple tweets for bulk classification. Visualize the distribution of the predictions and download detailed results for further analysis.</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    with col3:
+        st.markdown(
+            """
+            <div class="feature-card">
+                <h3>🤖 AI Assistant</h3>
+                <p>Interact with an AI-powered chatbot that can provide insights and responses based on tweet classifications, helping with automating customer service interactions.</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    st.markdown("---")
+    
+    # Modifying the CSS class for the heading to remove the large bottom margin.
+    # Instead of `sub-header`, a new class `tight-header` or a direct style can be used.
+    # Let's create a new CSS class to avoid affecting other sub-headers.
+    st.markdown('<style>.tight-header { font-size: 1.5rem; color: #b0bec5; text-align: center; margin-bottom: 1rem; }</style>', unsafe_allow_html=True)
+    st.markdown('<h2 class="tight-header">⛏️ Basic Workflow</h2>', unsafe_allow_html=True)
+
+    # How it Works section with emojis
+    st.markdown(
+        """
+        <div class="how-it-works-section">
+            <div class="how-it-works-step">
+                <p><strong>1. Data Ingestion:</strong> 📥 Tweets are fed into the system either individually or in batches via CSV uploads.</p>
+            </div>
+            <div class="how-it-works-step">
+                <p><strong>2. AI-Powered Classification:</strong> 🧠 Our robust FastAPI backend, powered by Transformer-based and Scikit-learn models, processes the tweets to classify their sentiment and intent.</p>
+            </div>
+            <div class="how-it-works-step">
+                <p><strong>3. Instant Insights:</strong> 💡 Get immediate predictions, confidence scores, and probability distributions for each tweet.</p>
+            </div>
+            <div class="how-it-works-step">
+                <p><strong>4. Proactive Engagement:</strong> 💬 The AI Assistant generates automated, context-aware responses, streamlining your customer service workflow.</p>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+def tweet_analysis_page():
+    """Handles single tweet analysis and displays results."""
+    st.markdown('<h2 class="main-header">📝 Single Tweet Analysis</h2>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Enter a tweet to get an instant classification and proactive response.</p>', unsafe_allow_html=True)
+
+    use_transformer_flag = (st.session_state.get('model_choice', 'Transformer') == "Transformer")
+
+    tweet_input = st.text_area("Enter a tweet to analyze:", placeholder="Type your tweet here...", height=120)
+    user_id = st.text_input("User ID (optional):", placeholder="Enter user ID")
+    
+    if st.button("🔍 Analyze Tweet", type="primary"):
+        if tweet_input.strip():
+            with st.spinner("Analyzing tweet..."):
+                result = predict_tweet(tweet_input, user_id, use_transformer_flag)
+                if result:
+                    st.success("✅ Analysis completed!")
+                    prediction = result['prediction']
+                    confidence = result['confidence']
+                    probabilities = result['probabilities']
+                    color_class = get_sentiment_color(prediction)
+                    st.markdown(f"""
+                    <div class="prediction-box {color_class}">
+                        <h3>🎯 Prediction: {prediction.upper()}</h3>
+                        <p><strong>Confidence:</strong> {confidence:.2%}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    proactive_response = generate_proactive_response(
+                        tweet_input, 
+                        result['prediction'], 
+                        result['confidence'], 
+                        result['probabilities']
+                    )
+                    st.markdown(f"""
+                    <div class="proactive-response">
+                        <h4>🤖 AI Assistant Response</h4>
+                        <p>{proactive_response['message']}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    st.plotly_chart(create_probability_chart(probabilities), use_container_width=True)
+                    st.subheader("📊 Detailed Probabilities")
+                    prob_df = pd.DataFrame(list(probabilities.items()), columns=['Class', 'Probability'])
+                    prob_df['Probability'] = prob_df['Probability'].apply(lambda x: f"{x:.2%}")
+                    st.dataframe(prob_df, use_container_width=True)
+                else:
+                    st.error("❌ Failed to analyze tweet. Please try again.")
         else:
-            st.markdown("""
-            <div class="status-box status-disconnected">
-                ❌ <strong>API Endpoint Disconnected</strong>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        # Rasa status
-        st.subheader("Chatbot Status")
-        if RASA_AVAILABLE:
-            st.markdown("""
-            <div class="status-box status-info">
-                🤖 <strong>Enhanced Chatbot Available</strong>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown("""
-            <div class="status-box status-warning">
-                ⚠️ <strong>Basic Chatbot Mode</strong>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        # Additional sidebar information
-        st.markdown("---")
-        st.subheader("📊 Quick Stats")
-        st.markdown(f"""
-        <div class="info-box">
-            <div><span class="info-label">Total Chat Messages:</span> {len(st.session_state.get('chat_history', []))}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # System information
-        st.markdown("---")
-        st.subheader("ℹ️ System Info")
-        st.markdown(f"""
-        <div class="info-box">
-            <div><span class="info-label">Current Time:</span> {datetime.now().strftime('%H:%M:%S')}</div>
-            <div><span class="info-label">Version:</span> 1.0.0</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
+            st.warning("⚠️ Please enter a tweet to analyze.")
+
+def batch_analysis_page():
+    """Handles batch tweet analysis from a CSV file."""
+    st.markdown('<h2 class="main-header">📋 Batch Tweet Analysis</h2>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Upload a CSV file containing tweets for bulk classification and download the results.</p>', unsafe_allow_html=True)
+
+    use_transformer_flag = (st.session_state.get('model_choice', 'Transformer') == "Transformer")
+
+    uploaded_file = st.file_uploader("Upload CSV file with tweets (should have a 'text' column)", type=['csv'])
+    if uploaded_file is not None:
+        try:
+            df = pd.read_csv(uploaded_file)
+            if 'text' in df.columns:
+                st.write(f"📊 Found {len(df)} tweets to analyze")
+                if st.button("🔍 Analyze All Tweets", type="primary"):
+                    results = []
+                    with st.spinner("Analyzing tweets..."):
+                        for index, row in df.iterrows():
+                            tweet_text = row['text']
+                            bot_response, analysis_result = chatbot_response(tweet_text, use_transformer=use_transformer_flag)
+                            
+                            if analysis_result:
+                                results.append({
+                                    'text': tweet_text,
+                                    'prediction': analysis_result['prediction'],
+                                    'confidence': analysis_result['confidence'],
+                                    'probabilities': analysis_result['probabilities'],
+                                    'chatbot_response': bot_response # Store the chatbot response
+                                })
+                    if results:
+                        results_df = pd.DataFrame(results)
+                        st.success(f"✅ Analyzed {len(results)} tweets successfully!")
+                        st.subheader("📊 Analysis Summary")
+                        summary = results_df['prediction'].value_counts()
+                        fig = px.pie(values=summary.values, names=summary.index, title="Prediction Distribution")
+                        st.plotly_chart(fig, use_container_width=True)
+                        st.subheader("📋 Detailed Results")
+                        display_df = results_df[['text', 'prediction', 'confidence', 'chatbot_response']].copy()
+                        display_df['confidence'] = display_df['confidence'].apply(lambda x: f"{x:.2%}")
+                        st.dataframe(display_df, use_container_width=True)
+                        
+                        st.subheader("📥 Download Results")
+                        
+                        # CSV Download
+                        csv_data = results_df[['text', 'prediction', 'confidence', 'chatbot_response']].to_csv(index=False).encode('utf-8')
+                        st.download_button(
+                            label="Download as CSV",
+                            data=csv_data,
+                            file_name=f"safaricom_tweet_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                            mime="text/csv",
+                            key="download_csv"
+                        )
+
+                        # PDF-like Text Report Download
+                        pdf_report_content = "Safaricom Tweet Analysis Report\n"
+                        pdf_report_content += f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                        
+                        for idx, row in results_df.iterrows():
+                            pdf_report_content += f"--- Tweet {idx + 1} ---\n"
+                            pdf_report_content += f"Tweet: {row['text']}\n"
+                            pdf_report_content += f"Prediction: {row['prediction']} (Confidence: {row['confidence']:.2%})\n"
+                            pdf_report_content += f"Chatbot Response: {row['chatbot_response']}\n\n"
+                        
+                        st.download_button(
+                            label="Download as Text Report (for PDF conversion)",
+                            data=pdf_report_content.encode('utf-8'),
+                            file_name=f"safaricom_tweet_analysis_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+                            mime="text/plain",
+                            key="download_txt_report",
+                            help="Download this text file and use your browser's 'Print to PDF' option for a PDF document."
+                        )
+                    else:
+                        st.error("❌ Failed to analyze tweets. Please check your data.")
+            else:
+                st.error("❌ CSV file must contain a 'text' column")
+        except Exception as e:
+            st.error(f"❌ Error reading file: {str(e)}")
+
+def ai_assistant_page():
+    """Provides an AI chatbot interface."""
+    st.markdown('<h2 class="main-header">🤖 AI Assistant</h2>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Chat with the AI about Safaricom tweets and get instant responses.</p>', unsafe_allow_html=True)
+
     if 'chat_history' not in st.session_state:
         st.session_state.chat_history = []
     
     if 'last_proactive_response' not in st.session_state:
         st.session_state.last_proactive_response = None
-    
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.subheader("📝 Tweet Analysis")
-        tweet_input = st.text_area("Enter a tweet to analyze:", placeholder="Type your tweet here...", height=120)
-        user_id = st.text_input("User ID (optional):", placeholder="Enter user ID")
-        
-        if st.button("🔍 Analyze Tweet", type="primary"):
-            if tweet_input.strip():
-                with st.spinner("Analyzing tweet..."):
-                    result = predict_tweet(tweet_input, user_id, use_transformer_flag)
-                    if result:
-                        st.success("✅ Analysis completed!")
-                        prediction = result['prediction']
-                        confidence = result['confidence']
-                        probabilities = result['probabilities']
-                        color_class = get_sentiment_color(prediction)
-                        st.markdown(f"""
-                        <div class="prediction-box {color_class}">
-                            <h3>🎯 Prediction: {prediction.upper()}</h3>
-                            <p><strong>Confidence:</strong> {confidence:.2%}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-                        proactive_response = generate_proactive_response(
-                            tweet_input, 
-                            result['prediction'], 
-                            result['confidence'], 
-                            result['probabilities']
-                        )
-                        st.markdown(f"""
-                        <div class="proactive-response">
-                            <h4>🤖 AI Assistant Response</h4>
-                            <p>{proactive_response['message']}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-                        st.plotly_chart(create_probability_chart(probabilities), use_container_width=True)
-                        st.subheader("📊 Detailed Probabilities")
-                        prob_df = pd.DataFrame(list(probabilities.items()), columns=['Class', 'Probability'])
-                        prob_df['Probability'] = prob_df['Probability'].apply(lambda x: f"{x:.2%}")
-                        st.dataframe(prob_df, use_container_width=True)
-                    else:
-                        st.error("❌ Failed to analyze tweet. Please try again.")
-            else:
-                st.warning("⚠️ Please enter a tweet to analyze.")
-        
-        st.markdown("---")
-        st.subheader("📋 Batch Analysis")
-        uploaded_file = st.file_uploader("Upload CSV file with tweets (should have a 'text' column)", type=['csv'])
-        if uploaded_file is not None:
-            try:
-                df = pd.read_csv(uploaded_file)
-                if 'text' in df.columns:
-                    st.write(f"📊 Found {len(df)} tweets to analyze")
-                    if st.button("🔍 Analyze All Tweets"):
-                        results = []
-                        with st.spinner("Analyzing tweets..."):
-                            for index, row in df.iterrows():
-                                result = predict_tweet(row['text'], use_transformer=use_transformer_flag)
-                                if result:
-                                    results.append({
-                                        'text': row['text'],
-                                        'prediction': result['prediction'],
-                                        'confidence': result['confidence'],
-                                        'probabilities': result['probabilities']
-                                    })
-                        if results:
-                            results_df = pd.DataFrame(results)
-                            st.success(f"✅ Analyzed {len(results)} tweets successfully!")
-                            st.subheader("📊 Analysis Summary")
-                            summary = results_df['prediction'].value_counts()
-                            fig = px.pie(values=summary.values, names=summary.index, title="Prediction Distribution")
-                            st.plotly_chart(fig, use_container_width=True)
-                            st.subheader("📋 Detailed Results")
-                            display_df = results_df[['text', 'prediction', 'confidence']].copy()
-                            display_df['confidence'] = display_df['confidence'].apply(lambda x: f"{x:.2%}")
-                            st.dataframe(display_df, use_container_width=True)
-                            csv = results_df.to_csv(index=False)
-                            st.download_button(
-                                label="📥 Download Results",
-                                data=csv,
-                                file_name=f"safaricom_tweet_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                                mime="text/csv"
-                            )
-                        else:
-                            st.error("❌ Failed to analyze tweets. Please check your data.")
-                else:
-                    st.error("❌ CSV file must contain a 'text' column")
-            except Exception as e:
-                st.error(f"❌ Error reading file: {str(e)}")
-    
-    with col2:
-        st.subheader("🤖 AI Assistant")
-        st.write("**Chat with me about Safaricom tweets!**")
-        
-        # Chat container to display messages
-        chat_container = st.container()
-        
-        with chat_container:
-            for message in st.session_state.chat_history:
-                if message['role'] == 'user':
-                    st.markdown(f"""
-                    <div class="chat-message user-message">
-                        <strong>You:</strong><br>
-                        {message['content']}
-                    </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown(f"""
-                    <div class="chat-message bot-message">
-                        <strong>AI Assistant:</strong><br>
-                        {message['content']}
-                    </div>
-                    """, unsafe_allow_html=True)
 
-        # Chat input and buttons
-        # The key to clearing the input is the use of the `on_change` parameter or a callback.
-        # We will use a callback function on the `text_input` and the `button`.
+    # Initialize the flag for clearing input if not already present
+    if 'clear_input_on_next_run' not in st.session_state:
+        st.session_state.clear_input_on_next_run = False
+
+    # Determine the current value for the chat input, and clear if flag is set
+    current_chat_input_value = st.session_state.get('chat_input', '')
+    if st.session_state.clear_input_on_next_run:
+        current_chat_input_value = ""
+        st.session_state.clear_input_on_next_run = False # Reset the flag immediately
+
+    chat_messages_html = ""
+    for message in st.session_state.chat_history:
+        # The content should already be stripped of HTML tags by chatbot_response
+        # We still use html.escape here as a final safeguard for any remaining special characters
+        displayed_content = html.escape(message['content'])
+        if message['role'] == 'user':
+            chat_messages_html += f"""
+            <div class="chat-message user-message">
+                {displayed_content}
+            </div>
+            """
+        else:
+            chat_messages_html += f"""
+            <div class="chat-message bot-message">
+                {displayed_content}
+            </div>
+            """
+    
+    st.markdown(f'<div class="chat-container">{chat_messages_html}</div>', unsafe_allow_html=True)
+
+
+    # Chat input and buttons
+    # Use the `value` parameter to control the input's content
+    st.text_input(
+        "Ask me about a tweet:", 
+        value=current_chat_input_value, # Set the value based on the flag
+        placeholder="Type a tweet or question...", 
+        key="chat_input",
+        on_change=handle_chat_submit
+    )
+
+    col_send, col_clear = st.columns([1, 1])
+
+    with col_send:
+        st.button(
+            "📤 Send", 
+            key="chat_send", 
+            on_click=handle_chat_submit, 
+            use_container_width=True
+        )
+    
+    with col_clear:
+        # Call the new clear_chat_callback
+        if st.button("🗑️ Clear", key="clear_chat", use_container_width=True, on_click=clear_chat_callback):
+            pass # The clearing logic is now in the callback
+
+    st.markdown("---")
+    st.write("**💡 Try these examples:**")
+    sample_questions = ["Safaricom network is very slow today", "Thank you Safaricom for the excellent service!", "Safaricom customer service was very helpful", "I hate Safaricom, they are stealing our money"]
+    for i, question in enumerate(sample_questions):
+        if st.button(f"📝 {question[:30]}{'...' if len(question) > 30 else ''}", key=f"sample_{i}", use_container_width=True):
+            st.session_state.chat_history.append({'role': 'user', 'content': question})
+            use_transformer_flag = (st.session_state.get('model_choice', 'Transformer') == "Transformer")
+            bot_response, analysis_result = chatbot_response(question, use_transformer_flag)
+            st.session_state.chat_history.append({'role': 'assistant', 'content': bot_response})
+            st.rerun()
+
+# --- New System Info Page Function ---
+def system_info_page():
+    """Displays system information including API health and model details."""
+    st.markdown('<h2 class="main-header">⚙️ System Information</h2>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">View the current status of the API, chatbot, and model details.</p>', unsafe_allow_html=True)
+
+    # Fetch system information
+    api_healthy, health_info = check_api_health()
+    model_info = get_model_info()
+
+    st.subheader("🚀 API Status")
+    if api_healthy:
+        st.markdown("""
+        <div class="status-box status-connected">
+            ✅ <strong>FastAPI API Endpoint Connected</strong>
+        </div>
+        """, unsafe_allow_html=True)
+        if health_info:
+            st.markdown(f"""
+            <div class="info-box">
+                <div><span class="info-label">Status:</span> {html.escape(health_info.get('status', 'Unknown'))}</div>
+                <div><span class="info-label">Version:</span> {html.escape(health_info.get('version', 'N/A'))}</div>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="status-box status-disconnected">
+            ❌ <strong>API Endpoint Disconnected</strong>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    st.subheader("🤖 Chatbot Status")
+    if RASA_AVAILABLE:
+        st.markdown("""
+        <div class="status-box status-info">
+            ✅ <strong>Enhanced Chatbot Available (Rasa)</strong>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="status-box status-warning">
+            ⚠️ <strong>Basic Chatbot Mode (Rasa not available)</strong>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.subheader("🧠 Model Details")
+    if model_info:
+        st.markdown(f"""
+        <div class="info-box">
+            <div><span class="info-label">Transformer Model Type:</span> {html.escape(model_info.get('transformer_model_type', 'N/A'))}</div>
+            <div><span class="info-label">Transformer Classes:</span> {html.escape(', '.join(model_info.get('transformer_classes', {}).values()) if isinstance(model_info.get('transformer_classes'), dict) else 'N/A')}</div>
+            <div><span class="info-label">Sklearn Model Type:</span> {html.escape(model_info.get('sklearn_model_type', 'N/A'))}</div>
+            <div><span class="info-label">Sklearn Classes:</span> {html.escape(', '.join(model_info.get('classes', [])) if isinstance(model_info.get('classes'), list) else 'N/A')}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.info("No model information available. Ensure API is running and accessible.")
+    
+    st.markdown("---")
+    st.subheader("📈 App Statistics")
+    st.markdown(f"""
+    <div class="info-box">
+        <div><span class="info-label">Total Chat Messages:</span> {len(st.session_state.get('chat_history', []))}</div>
+        <div><span class="info-label">Current App Time:</span> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</div>
+        <div><span class="info-label">App Version:</span> 1.0.0</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# --- Main Application Logic ---
+def main():
+    # Initialize session state for page navigation if not already set
+    if 'current_page' not in st.session_state:
+        st.session_state.current_page = "🏠 Home"
+    if 'model_choice' not in st.session_state:
+        st.session_state.model_choice = 'Transformer' # Default model choice
+
+    # Sidebar for navigation and global settings
+    with st.sidebar:
+        st.title("🚀 Navigation Panel")
+        st.markdown("---")
         
-        # Using a text_input with an on_change callback is the cleanest way.
-        chat_input = st.text_input(
-            "Ask me about a tweet:", 
-            placeholder="Type a tweet or question...", 
-            key="chat_input",
-            on_change=handle_chat_submit
+        # Page Navigation
+        page_options = ["🏠 Home", "📝 Tweet Analysis", "📋 Batch Analysis", "🤖 AI Assistant", "⚙️ System Info"]
+        page_selection = st.radio(
+            "Navigate",
+            page_options,
+            key="page_selector",
+            index=page_options.index(st.session_state.current_page)
+        )
+        st.session_state.current_page = page_selection
+
+        st.markdown("---")
+        st.subheader("⚙️ Global Settings")
+        
+        # Model Choice (moved to sidebar as a global setting)
+        st.session_state.model_choice = st.radio(
+            "Choose Model", 
+            ["Transformer", "Sklearn"], 
+            index=0 if st.session_state.model_choice == 'Transformer' else 1,
+            key="model_choice_radio"
         )
 
-        col_send, col_clear = st.columns([1, 1])
-
-        with col_send:
-            # We add a button that also triggers the callback.
-            # `on_click` is the recommended way to associate a button with a function.
-            st.button(
-                "📤 Send", 
-                key="chat_send", 
-                on_click=handle_chat_submit, 
-                use_container_width=True
-            )
-        
-        with col_clear:
-            if st.button("🗑️ Clear", key="clear_chat", use_container_width=True):
-                st.session_state.chat_history = []
-                # Clear the chat input as well.
-                st.session_state.chat_input = ""
-                st.rerun()
+        # Theme Toggle
+        theme_icon = "☀️" if st.session_state.theme == 'dark' else "🌙"
+        if st.button(f"{theme_icon} Toggle Theme", use_container_width=True):
+            st.session_state.theme = 'light' if st.session_state.theme == 'dark' else 'dark'
+            st.rerun()
         
         st.markdown("---")
-        st.write("**💡 Try these examples:**")
-        sample_questions = ["Safaricom network is very slow today", "Thank you Safaricom for the excellent service!", "Safaricom customer service was very helpful", "I hate Safaricom, they are stealing our money"]
-        for i, question in enumerate(sample_questions):
-            if st.button(f"📝 {question[:30]}{'...' if len(question) > 30 else ''}", key=f"sample_{i}", use_container_width=True):
-                # When a sample question is clicked, we directly update the state and rerun.
-                st.session_state.chat_history.append({'role': 'user', 'content': question})
-                use_transformer_flag = (st.session_state.get('model_choice', 'Transformer') == "Transformer")
-                bot_response, analysis_result = chatbot_response(question, use_transformer_flag)
-                st.session_state.chat_history.append({'role': 'assistant', 'content': bot_response})
-                st.rerun()
+        st.info("This app helps classify Safaricom tweets into categories like complaints, positive feedback, and more.")
+
+
+    # Display the selected page content
+    if st.session_state.current_page == "🏠 Home":
+        home_page()
+    elif st.session_state.current_page == "📝 Tweet Analysis":
+        tweet_analysis_page()
+    elif st.session_state.current_page == "📋 Batch Analysis":
+        batch_analysis_page()
+    elif st.session_state.current_page == "🤖 AI Assistant":
+        ai_assistant_page()
+    elif st.session_state.current_page == "⚙️ System Info":
+        system_info_page()
+
+    # --- Add Footer ---
+    st.markdown("---")
+    st.markdown(
+        """
+        <div style="text-align: center; color: #888; font-size: 0.9em;">
+            AI-enabled Tweet classifier, powered by Scikit-Learn and Hugging Face Transformers<br>
+            Developed by Patrick Maina, Christine Ndungu, Teresia Njoki and George Nyandusi<br>
+            &copy; 2025 All Rights Reserved.
+        </div>
+        """,
+    unsafe_allow_html=True
+)
+# --- End of Footer ---
 
 if __name__ == "__main__":
     main()
