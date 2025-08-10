@@ -1,0 +1,61 @@
+version: "3.1"
+
+nlu:
+- intent: greet
+  examples: |
+    - hey
+    - hello
+    - hi
+    - hello there
+    - good morning
+    - good evening
+    - hey there
+    - let's go
+    - hey dude
+    - goodmorning
+    - goodevening
+    - good afternoon
+
+- intent: goodbye
+  examples: |
+    - cu
+    - good by
+    - cee you later
+    - good night
+    - bye
+    - goodbye
+    - see you around
+    - bye bye
+    - see you later
+
+- intent: thank
+  examples: |
+    - thanks
+    - thank you
+    - thanks a lot
+    - thank you very much
+    - thanks so much
+    - thank you so much
+
+- intent: ask_help
+  examples: |
+    - help
+    - what can you do
+    - how can you help me
+    - what are your capabilities
+    - what do you do
+    - can you help me
+    - I need help
+
+- intent: analyze_tweet
+  examples: |
+    - analyze this tweet [Safaricom network is very slow today](tweet_text)
+    - what do you think about this tweet [Thank you Safaricom for the excellent service!](tweet_text)
+    - can you analyze [Safaricom customer service was very helpful](tweet_text)
+    - check this tweet [I hate Safaricom, they are stealing our money](tweet_text)
+    - analyze [Safaricom is the best network provider](tweet_text)
+    - what's your opinion on [Safaricom charges are too high](tweet_text)
+    - [Safaricom network coverage is poor in my area](tweet_text)
+    - [Safaricom data bundles are expensive](tweet_text)
+    - [Safaricom customer care is responsive](tweet_text)
+    - [Safaricom is a terrible company](tweet_text)

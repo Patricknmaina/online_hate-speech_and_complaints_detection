@@ -1,0 +1,27 @@
+version: "3.1"
+
+stories:
+- story: greet and analyze
+  steps:
+  - intent: greet
+  - action: utter_greet
+
+- story: analyze tweet
+  steps:
+  - intent: analyze_tweet
+  - action: action_analyze_tweet
+
+- story: ask for help
+  steps:
+  - intent: ask_help
+  - action: utter_help
+
+- story: thank
+  steps:
+  - intent: thank
+  - action: utter_thanks
+
+- story: goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye

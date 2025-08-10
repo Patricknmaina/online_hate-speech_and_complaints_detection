@@ -16,3 +16,19 @@ __pycache__/
 
 # virtual documents
 .virtual_documents/
+=4.2.0
+
+# datasets
+data/cleaned_safaricom_data_v2.csv
+data/combined_safaricom_data_v2.csv
+labeled_data_v3.csv
+labeled_data_v4.csv
+labeled_data_v5.csv
+
+# pre-trained models (too large for commit)
+models/bert_model/
+models/xlm_roberta_model/
+
+# frontend
+frontend/
+start-app.sh
