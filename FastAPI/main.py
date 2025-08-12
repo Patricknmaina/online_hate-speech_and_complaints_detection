@@ -15,7 +15,7 @@ import joblib
 import os
 import sys
 import zipfile
-# import gdown
+import gdown
 
 # For NLP preprocessing
 import nltk
@@ -36,34 +36,44 @@ import requests
 
 # Google Drive model download
 FILE_ID = "1CtiNyjbbYdO7pHdDPthaxRrCbnQ2jaoh"  # Replace with your Google Drive file ID
-URL = f"https://drive.google.com/uc?export=download&id={FILE_ID}"
+# URL = f"https://drive.google.com/uc?export=download&id={FILE_ID}"
+
+# def download_file_from_google_drive(file_id, dest_path):
+#     URL = "https://docs.google.com/uc?export=download"
+#     session = requests.Session()
+    
+#     response = session.get(URL, params={'id': file_id}, stream=True)
+    
+#     # Check for the Google Drive download warning page and get the confirmation token
+#     token = None
+#     for key, value in response.cookies.items():
+#         if key.startswith("download_warning"):
+#             token = value
+#             break
+            
+#     if token:
+#         params = {'id': file_id, 'confirm': token}
+#         response = session.get(URL, params=params, stream=True)
+        
+#     # Check for successful download (HTTP status code 200)
+#     if response.status_code != 200:
+#         raise Exception(f"Failed to download file. Status code: {response.status_code}, Response: {response.text}")
+
+#     # Save the file content
+#     with open(dest_path, "wb") as f:
+#         for chunk in response.iter_content(chunk_size=32768):
+#             if chunk:
+#                 f.write(chunk)
 
 def download_file_from_google_drive(file_id, dest_path):
-    URL = "https://docs.google.com/uc?export=download"
-    session = requests.Session()
-    
-    response = session.get(URL, params={'id': file_id}, stream=True)
-    
-    # Check for the Google Drive download warning page and get the confirmation token
-    token = None
-    for key, value in response.cookies.items():
-        if key.startswith("download_warning"):
-            token = value
-            break
-            
-    if token:
-        params = {'id': file_id, 'confirm': token}
-        response = session.get(URL, params=params, stream=True)
-        
-    # Check for successful download (HTTP status code 200)
-    if response.status_code != 200:
-        raise Exception(f"Failed to download file. Status code: {response.status_code}, Response: {response.text}")
-
-    # Save the file content
-    with open(dest_path, "wb") as f:
-        for chunk in response.iter_content(chunk_size=32768):
-            if chunk:
-                f.write(chunk)
+    """
+    Downloads a file from Google Drive using the file ID and saves it to a destination path.
+    This function uses the gdown library for robust handling of Google Drive download links.
+    """
+    try:
+        gdown.download(f'https://drive.google.com/uc?id={file_id}', dest_path, quiet=False)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to download file from Google Drive: {str(e)}")
 
 # Download NLTK data
 try:
@@ -268,27 +278,27 @@ def predict_with_transformer(text: str) -> Dict[str, Any]:
 async def startup_event():
     print("Starting API...")
 
-    models_zip_path = "models.zip"
-    models_dir_path = "models"
-    
-    # Check if the models directory exists and is not empty
-    if not os.path.exists(models_dir_path) or not os.listdir(models_dir_path):
-        print("📥 Downloading models from Google Drive...")
+    models_dir_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
+    xlm_roberta_model_path = os.path.join(models_dir_path, "xlm_roberta_model")
+
+    # Check for the existence of the transformer model directory
+    if not os.path.exists(xlm_roberta_model_path):
+        print("📥 Models not found locally. Downloading and extracting from Google Drive...")
+        
+        models_zip_path = "models.zip"
         
         try:
             download_file_from_google_drive(FILE_ID, models_zip_path)
             
             print("✅ Download complete. Extracting...")
             with zipfile.ZipFile(models_zip_path, 'r') as zip_ref:
-                zip_ref.extractall(".")
+                zip_ref.extractall(os.path.dirname(os.path.abspath(__file__)))
             print("✅ Models extracted.")
             
         except Exception as e:
             print(f"❌ Error during model download or extraction: {e}")
-            # Consider raising the exception to fail the startup
-            # raise e
-            
-    # Load models regardless of whether they were just downloaded or were already present
+            raise HTTPException(status_code=500, detail="Failed to load models during startup")
+
     load_model()
     load_transformer_model()
 
