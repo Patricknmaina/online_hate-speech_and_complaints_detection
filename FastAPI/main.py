@@ -39,27 +39,31 @@ FILE_ID = "1CtiNyjbbYdO7pHdDPthaxRrCbnQ2jaoh"  # Replace with your Google Drive 
 URL = f"https://drive.google.com/uc?export=download&id={FILE_ID}"
 
 def download_file_from_google_drive(file_id, dest_path):
-    def get_confirm_token(response):
-        for key, value in response.cookies.items():
-            if key.startswith("download_warning"):
-                return value
-        return None
-
-    def save_response_content(response, destination):
-        with open(destination, "wb") as f:
-            for chunk in response.iter_content(32768):
-                if chunk:
-                    f.write(chunk)
-
+    URL = "https://docs.google.com/uc?export=download"
     session = requests.Session()
+    
     response = session.get(URL, params={'id': file_id}, stream=True)
-    token = get_confirm_token(response)
-
+    
+    # Check for the Google Drive download warning page and get the confirmation token
+    token = None
+    for key, value in response.cookies.items():
+        if key.startswith("download_warning"):
+            token = value
+            break
+            
     if token:
         params = {'id': file_id, 'confirm': token}
         response = session.get(URL, params=params, stream=True)
+        
+    # Check for successful download (HTTP status code 200)
+    if response.status_code != 200:
+        raise Exception(f"Failed to download file. Status code: {response.status_code}, Response: {response.text}")
 
-    save_response_content(response, dest_path)
+    # Save the file content
+    with open(dest_path, "wb") as f:
+        for chunk in response.iter_content(chunk_size=32768):
+            if chunk:
+                f.write(chunk)
 
 # Download NLTK data
 try:
@@ -223,15 +227,25 @@ async def startup_event():
 
     models_zip_path = "models.zip"
     models_dir_path = "models"
-
+    
+    # Check if the models directory exists and is not empty
     if not os.path.exists(models_dir_path) or not os.listdir(models_dir_path):
         print("📥 Downloading models from Google Drive...")
-        download_file_from_google_drive(FILE_ID, models_zip_path)
-        print("✅ Download complete. Extracting...")
-        with zipfile.ZipFile(models_zip_path, 'r') as zip_ref:
-            zip_ref.extractall(".")
-        print("✅ Models extracted.")
-
+        
+        try:
+            download_file_from_google_drive(FILE_ID, models_zip_path)
+            
+            print("✅ Download complete. Extracting...")
+            with zipfile.ZipFile(models_zip_path, 'r') as zip_ref:
+                zip_ref.extractall(".")
+            print("✅ Models extracted.")
+            
+        except Exception as e:
+            print(f"❌ Error during model download or extraction: {e}")
+            # Consider raising the exception to fail the startup
+            # raise e
+            
+    # Load models regardless of whether they were just downloaded or were already present
     load_model()
     load_transformer_model()
 
@@ -332,4 +346,7 @@ async def get_model_info():
 # -------------------------- Main --------------------------
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    import os
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
+
