@@ -17,6 +17,57 @@ import os
 import html # Import the html module for escaping content
 import re   # Import re for regular expressions
 
+import zipfile
+import requests
+
+# --- Google Drive Model Downloader with Large File Support ---
+FILE_ID = "1CtiNyjbbYdO7pHdDPthaxRrCbnQ2jaoh"  # Replace with your Google Drive file ID
+URL = f"https://drive.google.com/uc?export=download&id={FILE_ID}"
+
+MODEL_ZIP_PATH = "Streamlit/models.zip"
+MODEL_DIR = "Streamlit/models"
+
+def download_file_from_google_drive(file_id, dest_path):
+    def get_confirm_token(response):
+        for key, value in response.cookies.items():
+            if key.startswith("download_warning"):
+                return value
+        return None
+
+    def save_response_content(response, destination):
+        with open(destination, "wb") as f:
+            for chunk in response.iter_content(32768):
+                if chunk:
+                    f.write(chunk)
+
+    session = requests.Session()
+    response = session.get(URL, params={'id': file_id}, stream=True)
+    token = get_confirm_token(response)
+
+    if token:
+        params = {'id': file_id, 'confirm': token}
+        response = session.get(URL, params=params, stream=True)
+
+    save_response_content(response, dest_path)
+
+def download_and_extract_model():
+    if not os.path.exists(MODEL_DIR):
+        os.makedirs(MODEL_DIR, exist_ok=True)
+
+    if not os.path.exists(MODEL_ZIP_PATH):
+        print("📥 Downloading model from Google Drive...")
+        try:
+            download_file_from_google_drive(FILE_ID, MODEL_ZIP_PATH)
+            print("✅ Download complete. Extracting...")
+            with zipfile.ZipFile(MODEL_ZIP_PATH, 'r') as zip_ref:
+                zip_ref.extractall(MODEL_DIR)
+            print("✅ Model extracted successfully.")
+        except Exception as e:
+            print(f"❌ Failed to download model: {e}")
+
+# Download model before running the app
+download_and_extract_model()
+
 # Add the parent directory to Python path to find AI_powered_chatbot
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
