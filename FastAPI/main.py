@@ -14,6 +14,8 @@ import numpy as np
 import joblib
 import os
 import sys
+import zipfile
+# import gdown
 
 # For NLP preprocessing
 import nltk
@@ -29,6 +31,35 @@ from torch.nn import functional as F
 # -------------------------- Project Setup --------------------------
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data_prep.feature_engineering import FeatureEngineering
+
+import requests
+
+# Google Drive model download
+FILE_ID = "1CtiNyjbbYdO7pHdDPthaxRrCbnQ2jaoh"  # Replace with your Google Drive file ID
+URL = f"https://drive.google.com/uc?export=download&id={FILE_ID}"
+
+def download_file_from_google_drive(file_id, dest_path):
+    def get_confirm_token(response):
+        for key, value in response.cookies.items():
+            if key.startswith("download_warning"):
+                return value
+        return None
+
+    def save_response_content(response, destination):
+        with open(destination, "wb") as f:
+            for chunk in response.iter_content(32768):
+                if chunk:
+                    f.write(chunk)
+
+    session = requests.Session()
+    response = session.get(URL, params={'id': file_id}, stream=True)
+    token = get_confirm_token(response)
+
+    if token:
+        params = {'id': file_id, 'confirm': token}
+        response = session.get(URL, params=params, stream=True)
+
+    save_response_content(response, dest_path)
 
 # Download NLTK data
 try:
@@ -138,7 +169,6 @@ def load_transformer_model(model_dir: str = "../models/xlm_roberta_model"):
         print(f"❌ Failed to load transformer model: {e}")
         return False
 
-
 # -------------------------- Preprocessing (Sklearn) --------------------------
 def preprocess_text(text: str) -> str:
     if feature_engineering is None:
@@ -190,11 +220,22 @@ def predict_with_transformer(text: str) -> Dict[str, Any]:
 @app.on_event("startup")
 async def startup_event():
     print("Starting API...")
+
+    models_zip_path = "models.zip"
+    models_dir_path = "models"
+
+    if not os.path.exists(models_dir_path) or not os.listdir(models_dir_path):
+        print("📥 Downloading models from Google Drive...")
+        download_file_from_google_drive(FILE_ID, models_zip_path)
+        print("✅ Download complete. Extracting...")
+        with zipfile.ZipFile(models_zip_path, 'r') as zip_ref:
+            zip_ref.extractall(".")
+        print("✅ Models extracted.")
+
     load_model()
     load_transformer_model()
 
 # -------------------------- Endpoints --------------------------
-
 @app.get("/", response_model=HealthResponse)
 async def root():
     model_loaded = model is not None and vectorizer is not None

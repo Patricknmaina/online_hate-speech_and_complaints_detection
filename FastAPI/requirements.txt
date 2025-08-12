@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+pydantic
+pandas
+numpy
+joblib
+nltk
+torch
+transformers
