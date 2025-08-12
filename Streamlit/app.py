@@ -23,9 +23,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 try:
     from AI_powered_chatbot.rasa_client import RasaClient
     RASA_AVAILABLE = True
+    RASA_UI_URL = "http://localhost:5055"  # Change this to your Rasa UI URL
 except ImportError as e:
     print(f"Warning: Could not import RasaClient: {e}")
     RASA_AVAILABLE = False
+    RASA_UI_URL = None
 
 # Page configuration
 st.set_page_config(
@@ -41,19 +43,20 @@ if 'theme' not in st.session_state:
 
 # --- Utility function to strip HTML tags ---
 def strip_html_tags(text):
-    """Remove html tags from a string, including HTML entities."""
+    """Remove all HTML tags and entities from a string."""
     if not isinstance(text, str):
-        return str(text) # Ensure it's a string before processing
+        return str(text)
     
-    # First, decode HTML entities to prevent them from being left behind
-    # e.g., &lt;div&gt; becomes <div>
+    # First decode HTML entities
     text = html.unescape(text)
     
-    # Then, remove HTML tags
-    clean = re.compile('<.*?>')
-    text = re.sub(clean, '', text)
+    # Then remove HTML tags
+    text = re.sub(r'<[^>]*>', '', text)
     
-    # Remove any remaining multiple spaces or leading/trailing whitespace
+    # Remove any remaining HTML entities
+    text = re.sub(r'&[a-zA-Z0-9#]+;', '', text)
+    
+    # Clean up whitespace
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
@@ -688,7 +691,7 @@ def chatbot_response(user_input, use_transformer=True):
             rasa_response = rasa_client.send_message(user_input)
             if rasa_response and len(rasa_response) > 0:
                 bot_message = rasa_response[0].get('text', 'Sorry, I couldn\'t process that.')
-                # Strip HTML tags from the Rasa response
+                # Ensure thorough cleaning of the response
                 bot_message = strip_html_tags(bot_message)
                 analysis_result = predict_tweet(user_input, use_transformer=use_transformer)
             else:
@@ -966,10 +969,11 @@ def batch_analysis_page():
             st.error(f"❌ Error reading file: {str(e)}")
 
 def ai_assistant_page():
-    """Provides an AI chatbot interface."""
+    """Provides an AI chatbot interface with proper HTML tag stripping."""
     st.markdown('<h2 class="main-header">🤖 AI Assistant</h2>', unsafe_allow_html=True)
     st.markdown('<p class="sub-header">Chat with the AI about Safaricom tweets and get instant responses.</p>', unsafe_allow_html=True)
 
+    # Initialize chat history if not present
     if 'chat_history' not in st.session_state:
         st.session_state.chat_history = []
     
@@ -980,39 +984,43 @@ def ai_assistant_page():
     if 'clear_input_on_next_run' not in st.session_state:
         st.session_state.clear_input_on_next_run = False
 
+    # Display chat messages
+    with st.container():
+        for message in st.session_state.chat_history:
+            # Create columns for alignment (user on right, bot on left)
+            cols = st.columns([4, 1] if message['role'] == 'user' else [1, 4])
+            
+            with cols[0] if message['role'] == 'assistant' else cols[1]:
+                # Clean the message content thoroughly
+                clean_content = strip_html_tags(message['content'])
+                
+                # Apply appropriate styling class
+                message_class = "user-message" if message['role'] == 'user' else "bot-message"
+                
+                # Display the message with proper styling but no HTML
+                st.markdown(
+                    f"""
+                    <div class="chat-message {message_class}">
+                        {clean_content}
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+    # Chat input and buttons
+    st.markdown("---")
+    
     # Determine the current value for the chat input, and clear if flag is set
     current_chat_input_value = st.session_state.get('chat_input', '')
     if st.session_state.clear_input_on_next_run:
         current_chat_input_value = ""
-        st.session_state.clear_input_on_next_run = False # Reset the flag immediately
+        st.session_state.clear_input_on_next_run = False  # Reset the flag immediately
 
-    chat_messages_html = ""
-    for message in st.session_state.chat_history:
-        # The content should already be stripped of HTML tags by chatbot_response
-        # We still use html.escape here as a final safeguard for any remaining special characters
-        displayed_content = html.escape(message['content'])
-        if message['role'] == 'user':
-            chat_messages_html += f"""
-            <div class="chat-message user-message">
-                {displayed_content}
-            </div>
-            """
-        else:
-            chat_messages_html += f"""
-            <div class="chat-message bot-message">
-                {displayed_content}
-            </div>
-            """
-    
-    st.markdown(f'<div class="chat-container">{chat_messages_html}</div>', unsafe_allow_html=True)
-
-
-    # Chat input and buttons
     # Use the `value` parameter to control the input's content
     st.text_input(
-        "Ask me about a tweet:", 
-        value=current_chat_input_value, # Set the value based on the flag
-        placeholder="Type a tweet or question...", 
+        "Ask me about a tweet:",
+        value=current_chat_input_value,
+        placeholder="Type a tweet or question...",
         key="chat_input",
         on_change=handle_chat_submit
     )
@@ -1021,26 +1029,47 @@ def ai_assistant_page():
 
     with col_send:
         st.button(
-            "📤 Send", 
-            key="chat_send", 
-            on_click=handle_chat_submit, 
+            "📤 Send",
+            key="chat_send",
+            on_click=handle_chat_submit,
             use_container_width=True
         )
     
     with col_clear:
-        # Call the new clear_chat_callback
         if st.button("🗑️ Clear", key="clear_chat", use_container_width=True, on_click=clear_chat_callback):
-            pass # The clearing logic is now in the callback
+            pass  # The clearing logic is in the callback
 
     st.markdown("---")
     st.write("**💡 Try these examples:**")
-    sample_questions = ["Safaricom network is very slow today", "Thank you Safaricom for the excellent service!", "Safaricom customer service was very helpful", "I hate Safaricom, they are stealing our money"]
+    sample_questions = [
+        "Safaricom network is very slow today",
+        "Thank you Safaricom for the excellent service!",
+        "Safaricom customer service was very helpful",
+        "I hate Safaricom, they are stealing our money"
+    ]
+    
     for i, question in enumerate(sample_questions):
-        if st.button(f"📝 {question[:30]}{'...' if len(question) > 30 else ''}", key=f"sample_{i}", use_container_width=True):
-            st.session_state.chat_history.append({'role': 'user', 'content': question})
+        if st.button(
+            f"📝 {question[:30]}{'...' if len(question) > 30 else ''}",
+            key=f"sample_{i}",
+            use_container_width=True
+        ):
+            # Add user question to chat history (cleaned)
+            st.session_state.chat_history.append({
+                'role': 'user',
+                'content': strip_html_tags(question)
+            })
+            
+            # Get bot response (which will be cleaned by chatbot_response)
             use_transformer_flag = (st.session_state.get('model_choice', 'Transformer') == "Transformer")
             bot_response, analysis_result = chatbot_response(question, use_transformer_flag)
-            st.session_state.chat_history.append({'role': 'assistant', 'content': bot_response})
+            
+            # Add bot response to chat history
+            st.session_state.chat_history.append({
+                'role': 'assistant',
+                'content': bot_response
+            })
+            
             st.rerun()
 
 # --- New System Info Page Function ---
