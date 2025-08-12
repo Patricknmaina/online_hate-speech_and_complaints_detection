@@ -7,3 +7,4 @@ joblib
 nltk
 torch
 transformers
+scikit-learn
