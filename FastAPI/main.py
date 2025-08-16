@@ -32,10 +32,10 @@ from torch.nn import functional as F
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data_prep.feature_engineering import FeatureEngineering
 
-import requests
+# import requests
 
 # Google Drive model download
-FILE_ID = "1CtiNyjbbYdO7pHdDPthaxRrCbnQ2jaoh"  # Replace with your Google Drive file ID
+# FILE_ID = "1CtiNyjbbYdO7pHdDPthaxRrCbnQ2jaoh"  # Replace with your Google Drive file ID
 # URL = f"https://drive.google.com/uc?export=download&id={FILE_ID}"
 
 # def download_file_from_google_drive(file_id, dest_path):
@@ -65,15 +65,15 @@ FILE_ID = "1CtiNyjbbYdO7pHdDPthaxRrCbnQ2jaoh"  # Replace with your Google Drive 
 #             if chunk:
 #                 f.write(chunk)
 
-def download_file_from_google_drive(file_id, dest_path):
-    """
-    Downloads a file from Google Drive using the file ID and saves it to a destination path.
-    This function uses the gdown library for robust handling of Google Drive download links.
-    """
-    try:
-        gdown.download(f'https://drive.google.com/uc?id={file_id}', dest_path, quiet=False)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to download file from Google Drive: {str(e)}")
+# def download_file_from_google_drive(file_id, dest_path):
+#     """
+#     Downloads a file from Google Drive using the file ID and saves it to a destination path.
+#     This function uses the gdown library for robust handling of Google Drive download links.
+#     """
+#     try:
+#         gdown.download(f'https://drive.google.com/uc?id={file_id}', dest_path, quiet=False)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Failed to download file from Google Drive: {str(e)}")
 
 # Download NLTK data
 try:
@@ -151,53 +151,10 @@ def load_model():
         return False
 
 # -------------------------- Load Transformer Model --------------------------
-# def load_transformer_model(model_dir: str = "../models/xlm_roberta_model/"):
-#     global transformer_model, transformer_tokenizer, transformer_classes
-#     try:
-#         transformer_tokenizer = AutoTokenizer.from_pretrained(model_dir)
-
-#         # Define label mapping
-#         label2id = {
-#             "Customer care complaint": 0,
-#             "Data protection and privacy concern": 1,
-#             "Hate Speech": 2,
-#             "Internet or airtime bundle complaint": 3,
-#             "MPESA complaint": 4,
-#             "Network reliability problem": 5,
-#             "Neutral": 6
-#         }
-#         id2label = {v: k for k, v in label2id.items()}
-
-#         transformer_model = AutoModelForSequenceClassification.from_pretrained(
-#             model_dir,
-#             id2label=id2label,
-#             label2id=label2id
-#         )
-#         transformer_model.eval()
-
-#         transformer_classes = id2label
-
-#         print("✅ Transformer model with labels loaded.")
-#         return True
-#     except Exception as e:
-#         print(f"❌ Failed to load transformer model: {e}")
-#         return False
-
-# -------------------------- Load Transformer Model --------------------------
-def load_transformer_model(model_dir_name: str = "xlm_roberta_model"):
+def load_transformer_model(model_dir: str = "../models/xlm_roberta_model/"):
     global transformer_model, transformer_tokenizer, transformer_classes
     try:
-        # Construct the absolute path to the model directory
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        model_dir_path = os.path.join(base_dir, "models", model_dir_name)
-
-        # Check if the directory exists before trying to load
-        if not os.path.exists(model_dir_path):
-            print(f"❌ Transformer model directory not found at: {model_dir_path}")
-            return False
-
-        # Load the tokenizer and model from the local directory
-        transformer_tokenizer = AutoTokenizer.from_pretrained(model_dir_path)
+        transformer_tokenizer = AutoTokenizer.from_pretrained(model_dir)
 
         # Define label mapping
         label2id = {
@@ -212,7 +169,7 @@ def load_transformer_model(model_dir_name: str = "xlm_roberta_model"):
         id2label = {v: k for k, v in label2id.items()}
 
         transformer_model = AutoModelForSequenceClassification.from_pretrained(
-            model_dir_path,
+            model_dir,
             id2label=id2label,
             label2id=label2id
         )
@@ -225,6 +182,49 @@ def load_transformer_model(model_dir_name: str = "xlm_roberta_model"):
     except Exception as e:
         print(f"❌ Failed to load transformer model: {e}")
         return False
+
+# -------------------------- Load Transformer Model --------------------------
+# def load_transformer_model(model_dir_name: str = "xlm_roberta_model"):
+#     global transformer_model, transformer_tokenizer, transformer_classes
+#     try:
+#         # Construct the absolute path to the model directory
+#         base_dir = os.path.dirname(os.path.abspath(__file__))
+#         model_dir_path = os.path.join(base_dir, "models", model_dir_name)
+
+#         # Check if the directory exists before trying to load
+#         if not os.path.exists(model_dir_path):
+#             print(f"❌ Transformer model directory not found at: {model_dir_path}")
+#             return False
+
+#         # Load the tokenizer and model from the local directory
+#         transformer_tokenizer = AutoTokenizer.from_pretrained(model_dir_path)
+
+#         # Define label mapping
+#         label2id = {
+#             "Customer care complaint": 0,
+#             "Data protection and privacy concern": 1,
+#             "Hate Speech": 2,
+#             "Internet or airtime bundle complaint": 3,
+#             "MPESA complaint": 4,
+#             "Network reliability problem": 5,
+#             "Neutral": 6
+#         }
+#         id2label = {v: k for k, v in label2id.items()}
+
+#         transformer_model = AutoModelForSequenceClassification.from_pretrained(
+#             model_dir_path,
+#             id2label=id2label,
+#             label2id=label2id
+#         )
+#         transformer_model.eval()
+
+#         transformer_classes = id2label
+
+#         print("✅ Transformer model with labels loaded.")
+#         return True
+#     except Exception as e:
+#         print(f"❌ Failed to load transformer model: {e}")
+#         return False
 
 # -------------------------- Preprocessing (Sklearn) --------------------------
 def preprocess_text(text: str) -> str:
@@ -274,31 +274,37 @@ def predict_with_transformer(text: str) -> Dict[str, Any]:
     }
 
 # -------------------------- FastAPI Startup --------------------------
+# @app.on_event("startup")
+# async def startup_event():
+#     print("Starting API...")
+
+#     models_dir_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
+#     xlm_roberta_model_path = os.path.join(models_dir_path, "xlm_roberta_model")
+
+#     # Check for the existence of the transformer model directory
+#     if not os.path.exists(xlm_roberta_model_path):
+#         print("📥 Models not found locally. Downloading and extracting from Google Drive...")
+        
+#         models_zip_path = "models.zip"
+        
+#         try:
+#             download_file_from_google_drive(FILE_ID, models_zip_path)
+            
+#             print("✅ Download complete. Extracting...")
+#             with zipfile.ZipFile(models_zip_path, 'r') as zip_ref:
+#                 zip_ref.extractall(os.path.dirname(os.path.abspath(__file__)))
+#             print("✅ Models extracted.")
+            
+#         except Exception as e:
+#             print(f"❌ Error during model download or extraction: {e}")
+#             raise HTTPException(status_code=500, detail="Failed to load models during startup")
+
+#     load_model()
+#     load_transformer_model()
+
 @app.on_event("startup")
 async def startup_event():
     print("Starting API...")
-
-    models_dir_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
-    xlm_roberta_model_path = os.path.join(models_dir_path, "xlm_roberta_model")
-
-    # Check for the existence of the transformer model directory
-    if not os.path.exists(xlm_roberta_model_path):
-        print("📥 Models not found locally. Downloading and extracting from Google Drive...")
-        
-        models_zip_path = "models.zip"
-        
-        try:
-            download_file_from_google_drive(FILE_ID, models_zip_path)
-            
-            print("✅ Download complete. Extracting...")
-            with zipfile.ZipFile(models_zip_path, 'r') as zip_ref:
-                zip_ref.extractall(os.path.dirname(os.path.abspath(__file__)))
-            print("✅ Models extracted.")
-            
-        except Exception as e:
-            print(f"❌ Error during model download or extraction: {e}")
-            raise HTTPException(status_code=500, detail="Failed to load models during startup")
-
     load_model()
     load_transformer_model()
 
@@ -397,9 +403,12 @@ async def get_model_info():
     }
 
 # -------------------------- Main --------------------------
+# if __name__ == "__main__":
+#     import uvicorn
+#     import os
+#     port = int(os.environ.get("PORT", 8000))
+#     uvicorn.run("main:app", host="0.0.0.0", port=port)
+
 if __name__ == "__main__":
     import uvicorn
-    import os
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
-
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
