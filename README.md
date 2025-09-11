@@ -1,149 +1,256 @@
-## **ONLINE HATE SPEECH AND COMPLAINTS DETECTION AND CLASSIFICATION**
+# **Online Hate Speech and Complaint Detection for Safaricom**
 
-### **Project summary**
-This NLP project automates the detection and classification of hate speech and customer complaints directed at Safaricom via Twitter. It uses both machine learning and transformer-based models to turn tweets into actionable categories, helping Safaricom improve customer care, protect its brand, and respond more efficiently to complaints.
+## **Project Overview**
 
-### **Data understanding**
-The data used in this project contained 6,146 tweets that were scrapped from Twitter (Now X) using a combination of N8N and TwitterAPI.io
-The data included features like Tweet ID, content, likes, retweets, replies, quotes, views, date. We labeled the dataset using OpenAI GPT-4 and Zero-Shot Classification using the following distinct classes:
-- Customer Care Complaint
-- MPESA Complaint
-- Network Reliability Problem
-- Internet/Airtime Bundle Complaint
-- Data Protection/Privacy Concern
-- Neutral
-- Hate Speech
+This project tackles the challenge of **automatically detecting and classifying hate speech and customer complaints** directed at **Safaricom** on Twitter (X).
 
-### **Problem statement**
-Safaricom faces growing challenges in managing hate speech directed at its brand, products, and employees on digital platforms. Customers frequently use social media to express frustrations with services such as M-PESA, customer care, and network coverage—often using emotionally charged or hostile language. The sheer volume of such content makes it difficult to manually monitor and respond effectively, exposing the company to reputational damage and delayed customer resolution. Moreover, distinguishing hate from genuine complaints is complicated by the informal, multilingual nature of online discourse in Kenya. Current moderation practices lack the scalability and contextual nuance required to handle these dynamics.
+Using a combination of **traditional machine learning models** and **state-of-the-art transformer architectures (XLM-RoBERTa, mBERT)**, the system categorizes tweets into actionable labels. By enabling **real-time monitoring and analysis**, it empowers Safaricom to:
 
-### **Business Objectives**
-The primary client for this NLP project is Safaricom plc. By analyzing and classifying tweets about their products, safaricom can gain authentic feedback that traditional methods might miss. This real-time access to customer sentiment will enable them to quickly identify trends, preferences, and potential issues, facilitating proactive engagement and timely adjustments to their strategies.
+* Improve **customer care efficiency**
+* Enhance **brand protection**
+* Support a **healthier online environment**
 
-### **Project objectives**
+The project is deployed as a **full-stack NLP application**, combining a **React + Tailwind CSS frontend**, a **FastAPI inference backend**, and **Hugging Face-hosted models**.
 
-• Identify and flag hate speech and user complaints in real time.
+## **Dataset**
 
-• Distinguish between negative feedback/complaints and harmful speech, ensuring genuine concerns are not misclassified.
+* **Source:** 6,146 tweets scraped using **N8N** and **TwitterAPI.io**.
+* **Features collected:** Tweet ID, content, likes, retweets, replies, quotes, views, timestamp.
+* **Labeling strategy:** Weak supervision via **OpenAI GPT-4** and **Zero-Shot Classification**.
+* **Classes defined:**
 
-• Support brand protection strategies through early detection of online hostility.
+  * Customer Care Complaint
+  * MPESA Complaint
+  * Network Reliability Problem
+  * Internet & Airtime Bundle Complaint
+  * Data Protection & Privacy Concern
+  * Neutral
+  * Hate Speech
 
-• Contribute to safer, more respectful online interactions between the organization and the general public.
+## **Problem Statement**
 
-### **Exploratory Data Analysis**
-We performed a systematic investigation of the dataset to extract insights, evaluate feature distributions, assess the relationship between the feature and target variables, and identify anomalies, outliers or data quality issues. This was helpful in choosing the right modeling techniques.
-We discovered that there was a class imbalance as the neutral tweets dominated the dataset
-We employed visualizations and descriptive statistics to show the underlying patterns, trends and correlations within the data
+Safaricom faces challenges in:
 
+* Handling **large volumes** of tweets mentioning its services.
+* **Separating genuine complaints** from **hateful or abusive speech**.
+* Managing **multilingual, informal, and context-dependent** communication common on Kenyan social media.
+
+Manual moderation is **slow, error-prone, and costly**. An automated system is needed to provide **scalable, accurate, and real-time tweet classification**.
+
+## **Business Objectives**
+
+* Provide **real-time visibility** into customer sentiment and hostility on Twitter.
+* Enable Safaricom to **prioritize urgent issues** (e.g., MPESA outages).
+* Support **brand reputation management** by flagging hate speech early.
+* Foster **respectful online interactions** between Safaricom and the public.
+
+## **Project Objectives**
+
+* Detect and flag **hate speech** and **complaints** in real-time.
+
+* Accurately distinguish between **negative feedback** and **harmful speech**.
+
+* Enable **proactive customer care** through automated classification.
+
+* Support **scalability** by integrating ML & Transformer models into production pipelines.
+
+## **Exploratory Data Analysis (EDA)**
+
+We conducted thorough EDA to understand data distribution and inform modeling:
+
+* **Class imbalance** observed (neutral tweets dominate).
+* **Tweet length distribution** varied widely.
+* **Word frequency analysis** revealed key terms in complaints (e.g., “MPESA”, “network”, “data”).
+
+Key Visualizations:
+
+* **Label distribution**
 ![download%20%281%29.png](images/labels_distribution.png)
 
+* **Tweet length histogram**
 ![Picture1.png](images/tweet_length_distribution.png)
 
+* **Word cloud (customer care-related terms, hate speech indicators)**
 ![download 2.png](images/customer_care_wordcloud.png)
 
-### **Data Cleaning And Preprocessing**
-We introduced a custom TweetPreprocessor class designed to automate and standardize the text cleaning and feature extraction process for Twitter sentiment analysis. the class performed tasks such as:
+## **Data Cleaning & Preprocessing**
 
-**Data Cleaning:**
+We developed a **custom TweetPreprocessor class** to streamline preprocessing:
 
-- Removal of URLs, user mentions, hashtags, special characters, and repeated characters.
+### **Data Cleaning**
 
-- Expansion of common English contractions (e.g., "can't" → "cannot").
+* Remove URLs, mentions, hashtags, emojis, repeated characters.
+* Expand contractions (e.g., "can't" → "cannot").
+* Normalize punctuation and whitespace.
 
-- Normalization of whitespace and punctuation.
+### **Text Preprocessing**
 
-**Text Preprocessing:**
+* Lowercasing
+* Tokenization
+* Stopword removal
+* Lemmatization
 
-- Conversion to lowercase for consistency.
+### **Feature Extraction**
 
-- Tokenization of text into words.
+* TF-IDF Vectorization
+* Count Vectorization
+* Configurable n-gram and vocabulary settings
 
-- Removal of stopwords and short words.
+The pipeline is **scikit-learn compatible** for seamless ML integration.
 
-- Lemmatization to reduce words to their base forms.
+## **Modeling Approach**
 
-**Feature Extraction:**
+### **Classical ML Models (Baseline)**
 
-- Supports both TF-IDF and Count Vectorization for transforming cleaned tweets into numerical feature vectors.
+* Logistic Regression
+* Naive Bayes
+* Random Forest
 
-- Configurable options for n-gram range, vocabulary size, and document frequency thresholds.
+### **Transformer Models (Deep Learning)**
 
-**Pipeline Integration:**
+* **XLM-RoBERTa** (fine-tuned)
+* **mBERT** (fine-tuned)
 
-The class is compatible with scikit-learn pipelines, enabling seamless integration with machine learning workflows.
+**Evaluation Metrics:** Accuracy, Precision, Recall, F1-score
 
-### **Modeling**
+## **Model Evaluation Results**
 
-In the modeling phase of this NLP project, the goal was to evaluate multiple approaches for classifying Safaricom tweets into their respective categories, combining both traditional Machine Learning models and SOTA (state-of-the-art) transformer-based models.
+| Model               | Accuracy   | Precision  | Recall     | F1-score   |
+| ------------------- | ---------- | ---------- | ---------- | ---------- |
+| Logistic Regression | 0.6959     | 0.7151     | 0.6959     | 0.7027     |
+| Naive Bayes         | 0.6846     | 0.6770     | 0.6846     | 0.6752     |
+| Random Forest       | 0.6886     | 0.6606     | 0.6886     | 0.6537     |
+| mBERT               | 0.7131     | 0.7266     | 0.7131     | 0.7185     |
+| **XLM-RoBERTa**     | **0.7885** | **0.7877** | **0.7885** | **0.7866** |
 
-We trained and evaluated three classical methods: Logistic Regression, Naive Bayes, and Random Forest. These models were chosen for their proven effectiveness in text classification tasks and their relatively low computational cost.
-To leverage advances in deep learning for multilingual NLP, we also fine-tuned two Hugging Face transformer models: XLM-RoBERTa and mBERT.
+**XLM-RoBERTa outperformed all baselines**, demonstrating strong multilingual handling and contextual understanding.
 
-Model evaluation was carried out using precision, recall, F1-score (main performance metrics)
-and model accuracy to provide a balanced view of performance.
+## **Deployment Architecture**
 
-### **Evaluation**
+![Application\_Architecture](images/streamlit_fastapi_model_workflow.png)
 
+### **1. Frontend (React + Tailwind / Streamlit Dashboard)**
 
-|          | Logistic Regression | Naive Bayes | Random Forest |   mBERT  | XLM RoBERTa |
-|----------|---------------------|-------------|---------------|----------|-------------|
-| Accuracy |    0.6959           | 0.6846      | 0.6886        | 0.7131   | 0.7885      |
-| Precision|    0.7151           | 0.6770      | 0.6606        | 0.7266   | 0.7877      |
-| Recall   |    0.6959           | 0.6846      | 0.6886        | 0.7131   | 0.7885      |
-| F1 score |    0.7027           | 0.6752      | 0.6537        | 0.7185   | 0.7866      |
+* **React + Tailwind UI:** Modern interface for tweet entry and visualization.
+* **Streamlit (Admin Dashboard):** CSV upload, batch classification, insights visualization.
 
-### **Deployment**
+### **2. Backend (FastAPI)**
 
-In this project, deployment focuses on enabling Safaricom’s customer service team to automatically classify tweets directed at @Safaricom, ultimately improving response efficiency and customer satisfaction.
+* Serves predictions from both:
 
-This project is deployed as a full-stack NLP application that allows users (e.g., Safaricom moderators or analysts) to input tweets and receive real-time classification results. The deployment stack includes a user-friendly dashboard, a backend API for model inference, and optional chatbot integration for conversational triage.
+  * **Logistic Regression (lightweight, fast)**
+  * **XLM-RoBERTa (deep, accurate)**
+* Provides REST API endpoints for single & batch predictions.
 
- 1. **Frontend: Streamlit Dashboard**
-- Purpose: Provides an intuitive interface for users to input tweets, view classification results, and explore model insights.
-- Features:
-    - Text input box for manual tweet entry
+### **3. Model Hosting (Hugging Face Hub)**
 
-    - CSV upload for batch classification
+* Transformer models uploaded to **Hugging Face** for efficient loading.
+* Scikit-learn models serialized via joblib.
 
-    - Real-time prediction display (class label + confidence score)
+### **4. AI Chatbot (Rasa Integration)**
 
-    - Visualizations: class distribution, word clouds, tweet length histograms
-- Tech: Built with Streamlit, enabling rapid prototyping and deployment with minimal overhead.
+* Enables conversational triage: moderators can ask, *“Is this tweet hate speech?”*
+* Provides natural language responses backed by the FastAPI inference server.
 
- 2. **Backend: FastAPI Inference Server**
-- Purpose: Handles incoming requests from the dashboard and returns model predictions.
-- Workflow:
-    - Receives tweet text via POST request
-    - Applies preprocessing using the TweetPreprocessor class
+## **Tech Stack**
 
-    - Feeds cleaned text into selected model (Logistic Regression or XLM-RoBERTa)
+* **Frontend:** React, Tailwind CSS, Typescript
+* **Backend:** FastAPI
+* **ML Models:** Scikit-learn (Logistic Regression, NB, RF)
+* **Transformers:** Hugging Face (mBERT, XLM-RoBERTa)
+* **Deployment:** Hugging Face Hub
+* **Chatbot:** Rasa
 
-    - Returns predicted class and confidence score
+## **How to Run Locally**
 
-    - Tech: Built with FastAPI, chosen for its speed, scalability, and easy integration with Python ML pipelines.
+### 1. Clone Repo
 
- 3. **Model Serving**
-- Models Deployed:
-    - Logistic Regression: Lightweight, fast, and interpretable
+```bash
+git clone https://github.com/your-username/safaricom-hate-speech-detector.git
+cd safaricom-hate-speech-detector
+```
 
-    - XLM-RoBERTa: Deep multilingual transformer for nuanced classification
+### 2. Setup Backend (FastAPI)
 
-- Model Selection: Users can toggle between models based on speed vs. accuracy trade-offs.
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
 
-- Storage: Models are serialized using joblib or pickle and loaded into memory at API startup.
+API runs at: `http://127.0.0.1:8000`
 
- 4. **AI-powered Chatbot: Rasa Integration**
-- Purpose: Enables conversational triage of tweets or user queries.
+### 3. Setup Frontend (React + Tailwind)
 
-- Use Case: A moderator can ask, “Is this tweet hate speech?” and receive a natural language response.
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-- Tech: Rasa is integrated into the Streamlit app via REST API or WebSocket.
+Frontend runs at: `http://127.0.0.1:5173`
 
- 5. **End-to-End Architecture**
+## **Example API Usage**
 
-![Application_Architecture](images/streamlit_fastapi_model_workflow.png)
+**Request:**
 
-### Conclusion
+```json
+POST /predict/transformer
+{
+  "text": "Safaricom data bundles are too expensive!"
+}
+```
 
-The final deployment architecture integrates Streamlit for a user-friendly dashboard, FastAPI for a high-performance backend layer, and Rasa for conversational AI support, enabling interactive and accessible customer engagement. This system not only automates classification, but also provides actionable insights through visual analytics, empowering Safaricom’s customer care team to respond more efficiently, identifying emerging issues in real-time, and foster a healthier online environment.
-Through these capabilities, the project provides a scalable foundation for proactive brand reputation management and customer relationship improvement, positioning Safaricom as a leader in data-driven customer engagement within the telecommunications sector.
+**Response:**
+
+```json
+{
+  "text": "Safaricom data bundles are too expensive!",
+  "prediction": "Internet/Airtime Bundle Complaint",
+  "confidence": 0.87,
+  "probabilities": {
+    "Customer Care Complaint": 0.05,
+    "MPESA Complaint": 0.01,
+    "Network Reliability Problem": 0.02,
+    "Internet/Airtime Bundle Complaint": 0.87,
+    "Data Protection/Privacy Concern": 0.01,
+    "Neutral": 0.02,
+    "Hate Speech": 0.02
+  }
+}
+```
+## **Conclusion**
+
+This project demonstrates how **machine learning and transformers** can power real-world applications in customer engagement and brand protection.
+
+By combining:
+
+* **Robust preprocessing**
+* **Hybrid ML + Transformer modeling**
+* **Interactive full-stack deployment**
+
+we provide Safaricom with a **scalable system** to monitor, classify, and respond to customer feedback and hate speech in real time.
+
+This lays a foundation for **AI-driven digital customer care**, aligning with Safaricom’s vision of innovation and customer-centric service.
+
+## **Future Work**
+
+To extend the impact and scalability of this system, the following enhancements are planned:
+
+* **Multilingual Expansion:** Incorporate Kiswahili, Sheng, and other regional languages for improved inclusivity.
+* **Model Distillation & Optimization:** Create lighter, faster transformer models for mobile and edge deployment.
+* **Streaming Integration:** Connect directly to Twitter API for real-time streaming classification.
+* **Advanced Explainability:** Add SHAP/LIME explainability for transparency in classification decisions.
+* **LLM Integration:** Explore larger generative models (e.g., GPT, LLaMA) for context-aware hate speech detection.
+* **Automated Escalation:** Integrate with ticketing/CRM tools for seamless escalation of critical complaints.
+* **Continuous Learning:** Set up pipelines to incorporate newly labeled tweets and retrain models automatically.
+
+## **Contributing**
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Submit a pull request
+
+## **License**
+MIT License - see LICENSE file for details
+

@@ -1,6 +1,6 @@
 """
 FastAPI app for Safaricom Tweet Classification
-Supports both Scikit-learn and XLM-RoBERTa (Hugging Face) models
+Supports both Scikit-learn (local) and XLM-RoBERTa (Hugging Face Hub) models
 """
 
 # -------------------------- Imports --------------------------
@@ -15,7 +15,6 @@ import joblib
 import os
 import sys
 import zipfile
-import gdown
 
 # For NLP preprocessing
 import nltk
@@ -104,16 +103,20 @@ def load_model():
         print("✅ Scikit-learn model and vectorizer loaded.")
         return True
     except Exception as e:
-        print(f"❌ Error loading model: {e}")
+        print(f"❌ Error loading sklearn model: {e}")
         return False
 
-# -------------------------- Load Transformer Model --------------------------
-def load_transformer_model(model_dir: str = "../models/xlm_roberta_model"):
+# -------------------------- Load Transformer Model from Hugging Face --------------------------
+def load_transformer_model(
+    repo_id: str = "patrickmaina/safaricom-hatespeech-detector",
+    use_auth_token: Optional[str] = None
+):
     global transformer_model, transformer_tokenizer, transformer_classes
     try:
-        transformer_tokenizer = AutoTokenizer.from_pretrained(model_dir)
+        # Load tokenizer from Hugging Face Hub
+        transformer_tokenizer = AutoTokenizer.from_pretrained(repo_id, token=use_auth_token)
 
-        # Define label mapping
+        # Define label mapping (must match training!)
         label2id = {
             "Customer care complaint": 0,
             "Data protection and privacy concern": 1,
@@ -125,19 +128,21 @@ def load_transformer_model(model_dir: str = "../models/xlm_roberta_model"):
         }
         id2label = {v: k for k, v in label2id.items()}
 
+        # Load model from Hugging Face Hub
         transformer_model = AutoModelForSequenceClassification.from_pretrained(
-            model_dir,
+            repo_id,
             id2label=id2label,
-            label2id=label2id
+            label2id=label2id,
+            token=use_auth_token
         )
         transformer_model.eval()
 
         transformer_classes = id2label
 
-        print("✅ Transformer model with labels loaded.")
+        print(f"✅ Transformer model loaded from Hugging Face Hub: {repo_id}")
         return True
     except Exception as e:
-        print(f"❌ Failed to load transformer model: {e}")
+        print(f"❌ Failed to load transformer model from Hugging Face: {e}")
         return False
 
 # -------------------------- Preprocessing (Sklearn) --------------------------
@@ -190,25 +195,17 @@ def predict_with_transformer(text: str) -> Dict[str, Any]:
 # -------------------------- FastAPI Startup --------------------------
 @app.on_event("startup")
 async def startup_event():
-    print("Starting API...")
+    print("🚀 Starting API...")
 
-    models_zip_path = "../models.zip"
-    models_dir_path = "../models"
-
-    # Extract only if models folder missing or empty
-    try:
-        if os.path.exists(models_zip_path) and (not os.path.exists(models_dir_path) or not os.listdir(models_dir_path)):
-            print("📦 Found models.zip and models folder is missing/empty. Extracting...")
-            with zipfile.ZipFile(models_zip_path, 'r') as zip_ref:
-                zip_ref.extractall(os.path.dirname(models_dir_path))
-            print("✅ Models extracted successfully.")
-        else:
-            print("ℹ️ Skipping extraction — models folder already exists and is not empty.")
-    except Exception as e:
-        print(f"❌ Failed to extract models.zip: {e}")
-
+    # Load scikit-learn model locally
     load_model()
-    load_transformer_model()
+
+    # Load transformer model from Hugging Face Hub
+    hf_token = os.getenv("HF_TOKEN", None)  # Use env var if repo is private
+    load_transformer_model(
+        repo_id="patrickmaina/safaricom-hatespeech-detector",
+        use_auth_token=hf_token
+    )
 
 # -------------------------- Endpoints --------------------------
 @app.get("/", response_model=HealthResponse)

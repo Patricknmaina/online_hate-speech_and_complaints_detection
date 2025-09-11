@@ -31,5 +31,4 @@ models/xlm_roberta_model/
 Streamlit/models/
 
 # frontend
-frontend/
-start-app.sh
+Frontend/node_modules
