@@ -1,0 +1,101 @@
+# Docker ignore file for FastAPI
+# Ignore files that shouldn't be included in the Docker image
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Railway
+railway.toml
+
+# Documentation
+README.md
+*.md
+
+# Test files
+tests/
+test_*.py
+*_test.py
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Large model files (uncomment to exclude from Docker image)
+# *.pkl
+# *.joblib
+# *.bin
+models/*.tar.gz
+models/*.zip
+
+# Data files (these should be provided via environment or API)
+data/
+*.csv
+*.json
+*.parquet
+
+# Jupyter notebooks
+*.ipynb
+.jupyter/
+
+# Environment files
+.env.*
+!.env.example

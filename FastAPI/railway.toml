@@ -1,0 +1,20 @@
+# Railway Configuration File
+# This file tells Railway how to build and deploy your FastAPI application
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[env]
+# Environment variables for Railway deployment
+USE_LIGHTWEIGHT_MODEL = "true"
+MAX_MEMORY_MB = "1024"
+ENABLE_MODEL_QUANTIZATION = "true"
+MODEL_CACHE_SIZE = "1"

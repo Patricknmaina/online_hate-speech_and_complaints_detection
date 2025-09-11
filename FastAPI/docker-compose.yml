@@ -1,0 +1,39 @@
+# Docker Compose for local FastAPI development and testing
+version: '3.8'
+
+services:
+  fastapi-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: safaricom-fastapi-local
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - USE_LIGHTWEIGHT_MODEL=true
+      - MAX_MEMORY_MB=2048
+      - MODEL_CACHE_SIZE=1
+      - ENABLE_MODEL_QUANTIZATION=true
+      - HF_TOKEN=${HF_TOKEN:-}
+    volumes:
+      - ./models:/app/models
+      - ./data_prep:/app/data_prep
+      - .:/app  # For development hot reload
+    networks:
+      - fastapi-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  fastapi-network:
+    driver: bridge
+
+volumes:
+  model-cache:
+  app-data:

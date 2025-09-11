@@ -1,0 +1,16 @@
+{
+  "name": "safaricom-fastapi-backend",
+  "description": "FastAPI backend for Safaricom hate speech and complaints detection",
+  "framework": "fastapi",
+  "language": "python",
+  "buildCommand": "docker build -t safaricom-fastapi .",
+  "startCommand": "uvicorn main:app --host 0.0.0.0 --port $PORT",
+  "environmentVariables": {
+    "USE_LIGHTWEIGHT_MODEL": "true",
+    "MAX_MEMORY_MB": "1024",
+    "ENABLE_MODEL_QUANTIZATION": "true",
+    "MODEL_CACHE_SIZE": "1"
+  },
+  "healthCheckPath": "/health",
+  "dockerFile": "Dockerfile"
+}

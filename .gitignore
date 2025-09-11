@@ -29,6 +29,12 @@ labeled_data_v5.csv
 models/bert_model/
 models/xlm_roberta_model/
 Streamlit/models/
+Streamlit/models.zip
+
 
 # frontend
 Frontend/node_modules
+
+# local environment files
+FastAPI/.env
+FastAPI/.env.example
