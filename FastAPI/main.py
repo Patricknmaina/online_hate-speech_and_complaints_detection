@@ -1,6 +1,6 @@
 """
 FastAPI app for Safaricom Tweet Classification
-Supports both Scikit-learn and XLM-RoBERTa (Hugging Face) models
+Supports both Scikit-learn (local) and XLM-RoBERTa (Hugging Face Hub) models
 """
 
 # -------------------------- Imports --------------------------
@@ -15,7 +15,6 @@ import joblib
 import os
 import sys
 import zipfile
-import gdown
 
 # For NLP preprocessing
 import nltk
@@ -28,52 +27,14 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 from torch.nn import functional as F
 
+# For chatbot integration
+import requests
+import asyncio
+from datetime import datetime
+
 # -------------------------- Project Setup --------------------------
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data_prep.feature_engineering import FeatureEngineering
-
-# import requests
-
-# Google Drive model download
-# FILE_ID = "1CtiNyjbbYdO7pHdDPthaxRrCbnQ2jaoh"  # Replace with your Google Drive file ID
-# URL = f"https://drive.google.com/uc?export=download&id={FILE_ID}"
-
-# def download_file_from_google_drive(file_id, dest_path):
-#     URL = "https://docs.google.com/uc?export=download"
-#     session = requests.Session()
-    
-#     response = session.get(URL, params={'id': file_id}, stream=True)
-    
-#     # Check for the Google Drive download warning page and get the confirmation token
-#     token = None
-#     for key, value in response.cookies.items():
-#         if key.startswith("download_warning"):
-#             token = value
-#             break
-            
-#     if token:
-#         params = {'id': file_id, 'confirm': token}
-#         response = session.get(URL, params=params, stream=True)
-        
-#     # Check for successful download (HTTP status code 200)
-#     if response.status_code != 200:
-#         raise Exception(f"Failed to download file. Status code: {response.status_code}, Response: {response.text}")
-
-#     # Save the file content
-#     with open(dest_path, "wb") as f:
-#         for chunk in response.iter_content(chunk_size=32768):
-#             if chunk:
-#                 f.write(chunk)
-
-# def download_file_from_google_drive(file_id, dest_path):
-#     """
-#     Downloads a file from Google Drive using the file ID and saves it to a destination path.
-#     This function uses the gdown library for robust handling of Google Drive download links.
-#     """
-#     try:
-#         gdown.download(f'https://drive.google.com/uc?id={file_id}', dest_path, quiet=False)
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Failed to download file from Google Drive: {str(e)}")
 
 # Download NLTK data
 try:
@@ -92,7 +53,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -114,6 +75,15 @@ class HealthResponse(BaseModel):
     status: str
     message: str
     model_info: Dict[str, Any]
+
+class ChatRequest(BaseModel):
+    message: str
+    sender_id: Optional[str] = "web_user"
+
+class ChatResponse(BaseModel):
+    responses: List[Dict[str, Any]]
+    sender_id: str
+    timestamp: str
 
 # -------------------------- Globals --------------------------
 model = None
@@ -147,16 +117,20 @@ def load_model():
         print("✅ Scikit-learn model and vectorizer loaded.")
         return True
     except Exception as e:
-        print(f"❌ Error loading model: {e}")
+        print(f"❌ Error loading sklearn model: {e}")
         return False
 
-# -------------------------- Load Transformer Model --------------------------
-def load_transformer_model(model_dir: str = "../models/xlm_roberta_model/"):
+# -------------------------- Load Transformer Model from Hugging Face --------------------------
+def load_transformer_model(
+    repo_id: str = "patrickmaina/safaricom-hatespeech-detector",
+    use_auth_token: Optional[str] = None
+):
     global transformer_model, transformer_tokenizer, transformer_classes
     try:
-        transformer_tokenizer = AutoTokenizer.from_pretrained(model_dir)
+        # Load tokenizer from Hugging Face Hub
+        transformer_tokenizer = AutoTokenizer.from_pretrained(repo_id, token=use_auth_token)
 
-        # Define label mapping
+        # Define label mapping (must match training!)
         label2id = {
             "Customer care complaint": 0,
             "Data protection and privacy concern": 1,
@@ -168,63 +142,22 @@ def load_transformer_model(model_dir: str = "../models/xlm_roberta_model/"):
         }
         id2label = {v: k for k, v in label2id.items()}
 
+        # Load model from Hugging Face Hub
         transformer_model = AutoModelForSequenceClassification.from_pretrained(
-            model_dir,
+            repo_id,
             id2label=id2label,
-            label2id=label2id
+            label2id=label2id,
+            token=use_auth_token
         )
         transformer_model.eval()
 
         transformer_classes = id2label
 
-        print("✅ Transformer model with labels loaded.")
+        print(f"✅ Transformer model loaded from Hugging Face Hub: {repo_id}")
         return True
     except Exception as e:
-        print(f"❌ Failed to load transformer model: {e}")
+        print(f"❌ Failed to load transformer model from Hugging Face: {e}")
         return False
-
-# -------------------------- Load Transformer Model --------------------------
-# def load_transformer_model(model_dir_name: str = "xlm_roberta_model"):
-#     global transformer_model, transformer_tokenizer, transformer_classes
-#     try:
-#         # Construct the absolute path to the model directory
-#         base_dir = os.path.dirname(os.path.abspath(__file__))
-#         model_dir_path = os.path.join(base_dir, "models", model_dir_name)
-
-#         # Check if the directory exists before trying to load
-#         if not os.path.exists(model_dir_path):
-#             print(f"❌ Transformer model directory not found at: {model_dir_path}")
-#             return False
-
-#         # Load the tokenizer and model from the local directory
-#         transformer_tokenizer = AutoTokenizer.from_pretrained(model_dir_path)
-
-#         # Define label mapping
-#         label2id = {
-#             "Customer care complaint": 0,
-#             "Data protection and privacy concern": 1,
-#             "Hate Speech": 2,
-#             "Internet or airtime bundle complaint": 3,
-#             "MPESA complaint": 4,
-#             "Network reliability problem": 5,
-#             "Neutral": 6
-#         }
-#         id2label = {v: k for k, v in label2id.items()}
-
-#         transformer_model = AutoModelForSequenceClassification.from_pretrained(
-#             model_dir_path,
-#             id2label=id2label,
-#             label2id=label2id
-#         )
-#         transformer_model.eval()
-
-#         transformer_classes = id2label
-
-#         print("✅ Transformer model with labels loaded.")
-#         return True
-#     except Exception as e:
-#         print(f"❌ Failed to load transformer model: {e}")
-#         return False
 
 # -------------------------- Preprocessing (Sklearn) --------------------------
 def preprocess_text(text: str) -> str:
@@ -274,39 +207,19 @@ def predict_with_transformer(text: str) -> Dict[str, Any]:
     }
 
 # -------------------------- FastAPI Startup --------------------------
-# @app.on_event("startup")
-# async def startup_event():
-#     print("Starting API...")
-
-#     models_dir_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
-#     xlm_roberta_model_path = os.path.join(models_dir_path, "xlm_roberta_model")
-
-#     # Check for the existence of the transformer model directory
-#     if not os.path.exists(xlm_roberta_model_path):
-#         print("📥 Models not found locally. Downloading and extracting from Google Drive...")
-        
-#         models_zip_path = "models.zip"
-        
-#         try:
-#             download_file_from_google_drive(FILE_ID, models_zip_path)
-            
-#             print("✅ Download complete. Extracting...")
-#             with zipfile.ZipFile(models_zip_path, 'r') as zip_ref:
-#                 zip_ref.extractall(os.path.dirname(os.path.abspath(__file__)))
-#             print("✅ Models extracted.")
-            
-#         except Exception as e:
-#             print(f"❌ Error during model download or extraction: {e}")
-#             raise HTTPException(status_code=500, detail="Failed to load models during startup")
-
-#     load_model()
-#     load_transformer_model()
-
 @app.on_event("startup")
 async def startup_event():
-    print("Starting API...")
+    print("🚀 Starting API...")
+
+    # Load scikit-learn model locally
     load_model()
-    load_transformer_model()
+
+    # Load transformer model from Hugging Face Hub
+    hf_token = os.getenv("HF_TOKEN", None)  # Use env var if repo is private
+    load_transformer_model(
+        repo_id="patrickmaina/safaricom-hatespeech-detector",
+        use_auth_token=hf_token
+    )
 
 # -------------------------- Endpoints --------------------------
 @app.get("/", response_model=HealthResponse)
@@ -402,13 +315,120 @@ async def get_model_info():
         "transformer_classes": transformer_classes if transformer_classes else None
     }
 
-# -------------------------- Main --------------------------
-# if __name__ == "__main__":
-#     import uvicorn
-#     import os
-#     port = int(os.environ.get("PORT", 8000))
-#     uvicorn.run("main:app", host="0.0.0.0", port=port)
+# -------------------------- Chatbot Integration --------------------------
+RASA_URL = "http://localhost:5005"
 
+async def check_rasa_status():
+    """Check if Rasa server is available"""
+    try:
+        response = requests.get(f"{RASA_URL}/status", timeout=5)
+        return response.status_code == 200
+    except:
+        return False
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat_with_bot(request: ChatRequest):
+    """
+    Send a message to the Rasa chatbot and get the response
+    """
+    try:
+        # Check if Rasa is available
+        if not await check_rasa_status():
+            # Fallback to tweet prediction if Rasa is not available
+            try:
+                # Use the existing tweet prediction function (synchronous call)
+                tweet_result = predict_tweet(request.message)
+                
+                # Extract prediction and confidence
+                prediction = tweet_result["prediction"]
+                confidence = tweet_result["confidence"]
+                
+                fallback_responses = {
+                    'MPESA complaint': f'I understand you\'re having an MPESA issue (confidence: {confidence:.1%}). Let me help you with that. Our MPESA team is available 24/7 to assist you. Could you provide more details about your specific MPESA problem?',
+                    'Customer care complaint': f'Thank you for reaching out. I can see you need customer care assistance (confidence: {confidence:.1%}). How can I help you today? Please describe your concern in detail.',
+                    'Network reliability problem': f'I notice you\'re experiencing network issues (confidence: {confidence:.1%}). Our technical team is working to resolve network problems in your area. Are you experiencing slow internet, call drops, or no signal?',
+                    'Data protection and privacy concern': f'Your privacy concerns are important to us (confidence: {confidence:.1%}). Safaricom takes data protection seriously. Can you tell me more about your specific privacy concern?',
+                    'Internet or airtime bundle complaint': f'I see you have concerns about our bundles (confidence: {confidence:.1%}). Let me help you find the best solution for your data needs. What specific issue are you experiencing with your bundles?',
+                    'Neutral': 'Thank you for contacting Safaricom! How can I assist you today? Feel free to ask me about our services, report any issues, or get help with your account.',
+                    'Hate Speech': f'I understand you\'re frustrated with our services (confidence: {confidence:.1%}). Let me help address your concerns and improve your experience. What specific issue can I help you resolve today?'
+                }
+                
+                response_text = fallback_responses.get(prediction, f'I received your message "{request.message}". How can I help you with Safaricom services today?')
+                
+                return ChatResponse(
+                    responses=[{"text": response_text}],
+                    sender_id=request.sender_id,
+                    timestamp=datetime.now().isoformat()
+                )
+            except Exception as e:
+                print(f"Fallback prediction error: {str(e)}")
+                # More specific fallback based on message content
+                message_lower = request.message.lower()
+                if any(word in message_lower for word in ['mpesa', 'money', 'transaction', 'payment']):
+                    response_text = "I can help you with MPESA issues. What specific problem are you experiencing with your transaction?"
+                elif any(word in message_lower for word in ['network', 'slow', 'connection', 'internet', 'data']):
+                    response_text = "I can help you with network issues. Are you experiencing slow internet, call problems, or connectivity issues?"
+                elif any(word in message_lower for word in ['customer', 'care', 'support', 'help', 'complaint']):
+                    response_text = "I'm here to help with your customer service needs. What can I assist you with today?"
+                elif any(word in message_lower for word in ['bundle', 'airtime', 'credit']):
+                    response_text = "I can help you with airtime and data bundles. What would you like to know about our packages?"
+                else:
+                    response_text = f"Hello! I'm your Safaricom AI assistant. I see you said: '{request.message}'. How can I help you with Safaricom services today?"
+                
+                return ChatResponse(
+                    responses=[{"text": response_text}],
+                    sender_id=request.sender_id,
+                    timestamp=datetime.now().isoformat()
+                )
+        
+        # Send message to Rasa
+        payload = {
+            "sender": request.sender_id,
+            "message": request.message
+        }
+        
+        response = requests.post(
+            f"{RASA_URL}/webhooks/rest/webhook",
+            json=payload,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            rasa_responses = response.json()
+            if not rasa_responses:
+                # If Rasa returns empty response, provide a fallback
+                rasa_responses = [{"text": "I'm not sure how to respond to that. Can you please rephrase your question?"}]
+            
+            return ChatResponse(
+                responses=rasa_responses,
+                sender_id=request.sender_id,
+                timestamp=datetime.now().isoformat()
+            )
+        else:
+            raise HTTPException(status_code=500, detail="Failed to communicate with chatbot")
+            
+    except Exception as e:
+        # Fallback response in case of any error
+        return ChatResponse(
+            responses=[{"text": "I'm sorry, I'm having trouble processing your message right now. Please try again later."}],
+            sender_id=request.sender_id,
+            timestamp=datetime.now().isoformat()
+        )
+
+@app.get("/chat/status")
+async def get_chat_status():
+    """
+    Check the status of the chatbot service
+    """
+    rasa_available = await check_rasa_status()
+    return {
+        "rasa_available": rasa_available,
+        "rasa_url": RASA_URL,
+        "fallback_mode": not rasa_available,
+        "status": "operational"
+    }
+
+# -------------------------- Main --------------------------
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
