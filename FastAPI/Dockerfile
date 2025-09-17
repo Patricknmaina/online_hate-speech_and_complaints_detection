@@ -6,16 +6,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
+# Install Python dependencies (with system build tools if needed)
 RUN apt-get update && apt-get install -y \
     build-essential \
-    curl \
-    git \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 COPY requirements.txt .
+RUN pip install --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Download NLTK data
