@@ -9,9 +9,3 @@ nltk
 transformers
 torch
 requests
-python-multipart
-jax
-# rasa
-plotly
-seaborn
-matplotlib
