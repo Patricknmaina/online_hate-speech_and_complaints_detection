@@ -11,7 +11,7 @@ torch
 requests
 python-multipart
 jax
-rasa
+# rasa
 plotly
 seaborn
 matplotlib
