@@ -7,7 +7,7 @@ numpy
 joblib
 nltk
 transformers
-torch==2.1.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
+torch
 requests
 python-multipart
 jax
