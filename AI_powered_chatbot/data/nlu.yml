@@ -1,6 +1,7 @@
 version: "3.1"
 
 nlu:
+# General conversation
 - intent: greet
   examples: |
     - hey
@@ -9,83 +10,425 @@ nlu:
     - hello there
     - good morning
     - good evening
-    - moin
     - hey there
-    - let's go
-    - hey dude
-    - goodmorning
-    - goodevening
-    - good afternoon
+    - hi there
+    - greetings
+    - jambo
+    - habari
+    - sasa
+    - mambo
+    - niaje
+    - hellow
 
 - intent: goodbye
   examples: |
-    - cu
-    - good by
-    - cee you later
-    - good night
     - bye
     - goodbye
-    - have a nice day
-    - see you around
-    - bye bye
     - see you later
+    - see you
+    - talk to you later
+    - catch you later
+    - bye bye
+    - take care
+    - thanks bye
+    - okay bye
+    - kwaheri
+    - tutaonana
 
 - intent: affirm
   examples: |
     - yes
-    - y
-    - indeed
+    - yeah
     - of course
-    - that sounds good
+    - sure
+    - sounds good
     - correct
+    - yes please
+    - yep
+    - that's right
+    - exactly
+    - affirmative
+    - ndiyo
+    - sawa
+    - ndio
 
 - intent: deny
   examples: |
     - no
-    - n
+    - nope
     - never
     - I don't think so
     - don't like that
     - no way
     - not really
+    - no thanks
+    - hapana
+    - siyo
 
-- intent: mood_great
+- intent: thank
   examples: |
-    - perfect
-    - great
-    - amazing
-    - feeling like a king
-    - wonderful
-    - I am feeling very good
-    - I am great
-    - I am amazing
-    - I am going to save the world
-    - super stoked
-    - extremely good
-    - so so perfect
-    - so good
-    - so perfect
-
-- intent: mood_unhappy
-  examples: |
-    - my day was horrible
-    - I am sad
-    - I don't feel very well
-    - I am disappointed
-    - super sad
-    - I'm so sad
-    - sad
-    - very sad
-    - unhappy
-    - not good
-    - not very good
-    - extremly sad
-    - so saad
-    - so sad
+    - thanks
+    - thank you
+    - thank you so much
+    - thanks a lot
+    - appreciate it
+    - thanks for your help
+    - thank you very much
+    - cheers
+    - asante
+    - asante sana
+    - shukran
 
 - intent: bot_challenge
   examples: |
     - are you a bot?
-    - are you a human?
+    - are you human?
     - am I talking to a bot?
     - am I talking to a human?
+    - who are you?
+    - what are you?
+
+# Network issues
+- intent: network_slow
+  examples: |
+    - my network is very slow
+    - slow internet connection
+    - why is my data so slow
+    - internet is not working properly
+    - slow network today
+    - data is loading very slowly
+    - network speed is terrible
+    - my safaricom network is slow
+    - browsing is very slow
+    - why is the network so slow
+    - internet speed is poor
+    - can't load anything, network too slow
+    - mtandao ni slow sana
+    - data yangu ni slow
+    - network si poa
+    - net ni slow kabisa
+
+- intent: network_down
+  examples: |
+    - network is down
+    - no network connection
+    - network not working
+    - complete network outage
+    - network has been down all day
+    - no connection at all
+    - network is completely dead
+    - total network failure
+    - network crashed
+    - safaricom network is down
+    - can't connect to anything
+    - mtandao hauwork
+    - network imeisha
+    - hakuna network
+    - network imepotea
+
+- intent: no_signal
+  examples: |
+    - no signal
+    - can't get signal
+    - no network signal
+    - signal is very weak
+    - poor signal
+    - signal keeps dropping
+    - barely any signal
+    - signal unavailable
+    - no bars on my phone
+    - signal strength is zero
+    - hakuna signal
+    - signal ni weak
+    - signal imeisha
+
+- intent: call_drops
+  examples: |
+    - my calls keep dropping
+    - calls disconnect automatically
+    - phone calls keep cutting off
+    - can't complete a phone call
+    - calls drop in the middle
+    - every call gets disconnected
+    - calls are dropping frequently
+    - call quality is poor
+    - calls keep ending unexpectedly
+    - simu zinakatika
+    - calls zinashuka
+    - simu haiendei
+
+- intent: data_issues
+  examples: |
+    - my data is not working
+    - mobile data won't connect
+    - internet data problems
+    - can't use my data bundles
+    - data connection failed
+    - data is not connecting
+    - internet bundle not working
+    - my data finished but I can't use new bundle
+    - data yangu haiwork
+    - data haifanyi kazi
+    - bundles zinakataa
+
+# MPESA issues
+- intent: mpesa_stuck
+  examples: |
+    - my mpesa is stuck
+    - mpesa transaction stuck
+    - money stuck in mpesa
+    - sent money but not received
+    - mpesa transfer pending
+    - transaction not completed
+    - money deducted but not received
+    - mpesa payment stuck
+    - pesa yangu imestuck
+    - mpesa imekataa
+    - transaction haijafika
+    - pesa zimetoka lakini hazijafika
+    - mpesa imekwama
+
+- intent: mpesa_failed
+  examples: |
+    - mpesa transaction failed
+    - mpesa payment failed
+    - failed to send money
+    - transaction was not successful
+    - mpesa declined
+    - couldn't complete mpesa
+    - mpesa error
+    - transaction unsuccessful
+    - mpesa haiku-work
+    - mpesa imefail
+    - transaction imekataa
+    - sijaweza tuma pesa
+
+- intent: mpesa_reversal
+  examples: |
+    - need mpesa reversal
+    - reverse my mpesa transaction
+    - wrong mpesa recipient
+    - sent money to wrong number
+    - want my money back
+    - mpesa reversal request
+    - how to reverse mpesa
+    - undo mpesa transaction
+    - nimesend kwa namba wrong
+    - nataka reversal
+    - nimemistake
+    - pesa zimeenda kwa mtu wrong
+
+- intent: mpesa_statement
+  examples: |
+    - need mpesa statement
+    - how to get mpesa statement
+    - send me mpesa statement
+    - want transaction history
+    - mpesa mini statement
+    - check mpesa transactions
+    - mpesa report
+    - nataka statement ya mpesa
+    - nitumie statement
+    - nataka transaction history
+
+- intent: mpesa_pin
+  examples: |
+    - forgot mpesa pin
+    - reset mpesa pin
+    - change mpesa pin
+    - mpesa pin not working
+    - how to reset pin
+    - lost my mpesa pin
+    - pin is blocked
+    - want new mpesa pin
+    - nimesahau pin yangu
+    - nataka reset pin
+    - pin yangu imeblock
+    - sijaweza remember pin
+
+# Billing and airtime
+- intent: high_bill
+  examples: |
+    - my bill is too high
+    - why is my bill so expensive
+    - bill amount is wrong
+    - unexpectedly high charges
+    - bill has increased
+    - too much on my bill
+    - overcharged on bill
+    - bill ni kubwa sana
+    - bill imeongezeka
+    - nimecharged pesa mob
+
+- intent: wrong_charges
+  examples: |
+    - wrong charges on my account
+    - was charged incorrectly
+    - unauthorized charges
+    - charges I didn't make
+    - bill has errors
+    - charged for services I didn't use
+    - incorrect billing
+    - nimecharged bila kujua
+    - charges si correct
+    - kuna charges sijaweza understand
+
+- intent: buy_airtime
+  examples: |
+    - want to buy airtime
+    - how to purchase airtime
+    - need airtime
+    - buy credit
+    - top up my phone
+    - recharge airtime
+    - airtime purchase
+    - nataka ku-buy airtime
+    - nitatop-up aje
+    - nataka credit
+
+- intent: buy_data
+  examples: |
+    - want to buy data
+    - how to purchase bundles
+    - need internet bundles
+    - buy data packages
+    - subscribe to data
+    - get data bundles
+    - purchase internet
+    - nataka bundles
+    - nitabuy data aje
+    - nataka internet packages
+
+- intent: check_balance
+  examples: |
+    - check my balance
+    - what's my balance
+    - how much airtime do I have
+    - check credit
+    - check data balance
+    - how much bundles left
+    - balance inquiry
+    - nataka check balance
+    - nina balance ngapi
+    - nataka jua airtime yangu
+
+# Customer service
+- intent: talk_to_agent
+  examples: |
+    - talk to customer service
+    - speak to agent
+    - connect me to support
+    - I need human help
+    - talk to representative
+    - customer care number
+    - contact support
+    - human agent please
+    - nataka customer care
+    - nataka agent
+    - nataka mtu wa kuongea naye
+    - connect me to support team
+
+- intent: service_complaint
+  examples: |
+    - I want to make a complaint
+    - poor customer service
+    - not happy with service
+    - bad experience
+    - file a complaint
+    - service is terrible
+    - very disappointed
+    - unsatisfactory service
+    - nataka ku-complain
+    - service ni mbaya
+    - si happy na service
+    - nataka ku-file complaint
+
+- intent: service_praise
+  examples: |
+    - excellent service
+    - great customer support
+    - very happy with service
+    - thank you for good service
+    - amazing support
+    - best network
+    - love safaricom
+    - great job
+    - service ni poa
+    - mko fiti
+    - poa sana
+    - mko top
+
+- intent: service_center
+  examples: |
+    - where is safaricom shop
+    - nearest service center
+    - find safaricom outlet
+    - shop location
+    - where can I visit
+    - safaricom branch near me
+    - closest safaricom shop
+    - shop iko wapi
+    - nataka kujua location ya shop
+    - safaricom iko wapi
+
+# Account issues
+- intent: sim_swap
+  examples: |
+    - need sim swap
+    - replace my sim card
+    - want new sim same number
+    - sim card replacement
+    - swap my sim
+    - change sim card
+    - nataka sim swap
+    - nataka new sim
+    - sim yangu imeisha
+    - nataka kubadilisha sim
+
+- intent: lost_sim
+  examples: |
+    - lost my sim card
+    - sim card is missing
+    - can't find my sim
+    - sim was stolen
+    - lost my phone and sim
+    - need to block sim
+    - sim imepotea
+    - nimelose sim
+    - sim imeibwa
+    - nataka block sim
+
+- intent: unlock_sim
+  examples: |
+    - my sim is locked
+    - unlock my sim card
+    - sim is blocked
+    - need puk code
+    - sim won't work
+    - how to unlock sim
+    - sim imelock
+    - nataka unlock sim
+    - sim haifanyi kazi
+    - nataka puk code
+
+- intent: change_number
+  examples: |
+    - want new phone number
+    - change my number
+    - get different number
+    - number replacement
+    - swap phone number
+    - nataka number mpya
+    - nataka kubadili number
+    - nataka namba ingine
+
+- intent: account_balance
+  examples: |
+    - what's my account balance
+    - check account
+    - account balance inquiry
+    - how much in my account
+    - view account balance
+    - nataka check account
+    - nina nini kwa account
+    - balance ya account

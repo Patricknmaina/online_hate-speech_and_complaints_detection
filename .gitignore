@@ -26,11 +26,10 @@ labeled_data_v4.csv
 labeled_data_v5.csv
 
 # pre-trained models (too large for commit)
-models/bert_model/
+FastAPI/models/bert-model/
 models/xlm_roberta_model/
 Streamlit/models/
 Streamlit/models.zip
-
 
 # frontend
 Frontend/node_modules

@@ -1,7 +1,7 @@
 """
 FastAPI app for Safaricom Tweet Classification
 Optimized with lazy loading and environment-based model selection
-Supports both Scikit-learn (local) and XLM-RoBERTa (Hugging Face Hub) models
+Supports both Scikit-learn (local) and transformer models (e.g., mBERT)
 Falls back to Hugging Face Inference API if transformer model cannot be loaded due to memory limits
 """
 
@@ -44,17 +44,18 @@ class Config:
     
     # Environment variables with defaults
     USE_LIGHTWEIGHT_MODEL = os.getenv("USE_LIGHTWEIGHT_MODEL", "false").lower() == "true"
-    MAX_MEMORY_MB = int(os.getenv("MAX_MEMORY_MB", "1024"))
+    MAX_MEMORY_MB = int(os.getenv("MAX_MEMORY_MB", "2048"))
     HF_TOKEN = os.getenv("HF_TOKEN")
     MODEL_CACHE_SIZE = int(os.getenv("MODEL_CACHE_SIZE", "1"))
     ENABLE_MODEL_QUANTIZATION = os.getenv("ENABLE_MODEL_QUANTIZATION", "true").lower() == "true"
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     
     # Model paths
-    SKLEARN_MODEL_PATH = os.getenv("SKLEARN_MODEL_PATH", "../models/best_model.pkl")
-    VECTORIZER_PATH = os.getenv("VECTORIZER_PATH", "../models/vectorizer.pkl")
+    SKLEARN_MODEL_PATH = os.getenv("SKLEARN_MODEL_PATH", "models/best_model.pkl")
+    VECTORIZER_PATH = os.getenv("VECTORIZER_PATH", "models/vectorizer.pkl")
     
     # Hugging Face settings
+    # Default to mBERT; override with your fine-tuned mBERT repo via env
     HF_MODEL_REPO = os.getenv("HF_MODEL_REPO", "patrickmaina/safaricom-hatespeech-detector")
     HF_API_URL = f"https://api-inference.huggingface.co/models/{HF_MODEL_REPO}"
     
@@ -352,6 +353,17 @@ async def warm_up_models():
     try:
         logger.info("🔥 Warming up models...")
         
+        # Warm up sklearn model first
+        try:
+            await asyncio.get_event_loop().run_in_executor(
+                model_manager._executor,
+                predict_tweet,
+                "Test warmup tweet for sklearn model"
+            )
+            logger.info("✅ Sklearn model warmed up successfully")
+        except Exception as e:
+            logger.warning(f"⚠️ Sklearn model warmup failed: {e}")
+        
         # Warm up transformer model with a simple prediction
         if not model_manager.is_using_hf_inference():
             await asyncio.get_event_loop().run_in_executor(
@@ -373,9 +385,13 @@ app = FastAPI(
 )
 
 origins = [
-    "https://safarimeter-v2.netlify.app/",
+    "https://safarimeter-v2.netlify.app",
     "http://localhost:3000",
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "http://localhost:5176",
+    "http://localhost:5177",
 ]
 
 app.add_middleware(
@@ -397,6 +413,26 @@ class TweetResponse(BaseModel):
     confidence: float
     probabilities: Dict[str, float]
     user_id: Optional[str] = None
+
+class ChatRequest(BaseModel):
+    message: str
+    sender_id: Optional[str] = "default"
+
+class ChatMessage(BaseModel):
+    text: str
+    image: Optional[str] = None
+    buttons: Optional[List[Dict[str, str]]] = None
+
+class ChatResponse(BaseModel):
+    responses: List[ChatMessage]
+    sender_id: str
+    timestamp: str
+
+class ChatStatus(BaseModel):
+    rasa_available: bool
+    rasa_url: str
+    fallback_mode: bool
+    status: str
 
 class HealthResponse(BaseModel):
     status: str
@@ -871,6 +907,127 @@ async def get_metrics():
     except Exception as e:
         logger.error(f"❌ Metrics error: {e}")
         raise HTTPException(status_code=500, detail=f"Metrics error: {str(e)}")
+
+# -------------------------- Chat Endpoints --------------------------
+@app.get("/chat/status", response_model=ChatStatus)
+async def get_chat_status():
+    """Get chatbot status - indicates if Rasa is available or using fallback"""
+    rasa_url = os.getenv("RASA_URL", "http://localhost:5005")
+    rasa_available = False
+    
+    # Try to check if Rasa is available
+    try:
+        response = requests.get(f"{rasa_url}/", timeout=2)
+        rasa_available = response.status_code == 200
+    except Exception as e:
+        logger.debug(f"Rasa not available: {e}")
+        rasa_available = False
+    
+    return ChatStatus(
+        rasa_available=rasa_available,
+        rasa_url=rasa_url,
+        fallback_mode=not rasa_available,
+        status="operational"
+    )
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat_endpoint(request: ChatRequest):
+    """
+    Chat endpoint with intelligent fallback
+    - Attempts to use Rasa if available
+    - Falls back to ML-based classification responses if Rasa is unavailable
+    """
+    try:
+        rasa_url = os.getenv("RASA_URL", "http://localhost:5005")
+        
+        # Try Rasa first
+        try:
+            rasa_response = requests.post(
+                f"{rasa_url}/webhooks/rest/webhook",
+                json={
+                    "sender": request.sender_id,
+                    "message": request.message
+                },
+                timeout=5
+            )
+            
+            if rasa_response.status_code == 200:
+                rasa_messages = rasa_response.json()
+                
+                if rasa_messages:
+                    chat_messages = []
+                    for msg in rasa_messages:
+                        chat_messages.append(ChatMessage(
+                            text=msg.get("text", ""),
+                            image=msg.get("image"),
+                            buttons=msg.get("buttons")
+                        ))
+                    
+                    return ChatResponse(
+                        responses=chat_messages,
+                        sender_id=request.sender_id,
+                        timestamp=datetime.utcnow().isoformat()
+                    )
+        except Exception as e:
+            logger.debug(f"Rasa unavailable, using fallback: {e}")
+        
+        # Fallback: Use ML classification to generate intelligent response
+        # Try transformer first, fall back to sklearn if needed
+        try:
+            prediction_result = predict_with_transformer(request.message)
+        except Exception as e:
+            logger.debug(f"Transformer unavailable, using sklearn: {e}")
+            prediction_result = predict_tweet(request.message)
+        
+        prediction = prediction_result["prediction"]
+        confidence = prediction_result["confidence"]
+        
+        # Generate contextual response based on classification
+        response_text = generate_fallback_response(prediction, confidence, request.message)
+        
+        return ChatResponse(
+            responses=[ChatMessage(text=response_text)],
+            sender_id=request.sender_id,
+            timestamp=datetime.utcnow().isoformat()
+        )
+        
+    except Exception as e:
+        logger.error(f"❌ Chat endpoint error: {e}")
+        # Return a generic helpful message on error
+        return ChatResponse(
+            responses=[ChatMessage(
+                text="I'm experiencing some technical difficulties. Please try again in a moment. For urgent issues, please contact Safaricom customer care directly."
+            )],
+            sender_id=request.sender_id,
+            timestamp=datetime.utcnow().isoformat()
+        )
+
+def generate_fallback_response(prediction: str, confidence: float, message: str) -> str:
+    """Generate intelligent fallback responses based on tweet classification"""
+    
+    responses = {
+        "MPESA complaint": "I understand you're experiencing issues with MPESA. Our technical team is aware of transaction processing concerns. For immediate assistance, please call *234# or contact our MPESA support line. Your transaction is being reviewed.",
+        
+        "Customer care complaint": "Thank you for reaching out to Safaricom. I've noted your concern regarding customer service. A customer care representative will be with you shortly. For urgent matters, please call 100 from your Safaricom line or 0722000000.",
+        
+        "Network reliability problem": "I see you're experiencing network connectivity issues. Our technical team is working to improve service in affected areas. You can check network status updates at safaricom.co.ke/coverage or report specific issues via the mySafaricom app.",
+        
+        "Data protection and privacy concern": "We take data protection and privacy very seriously at Safaricom. Your concern has been noted and will be reviewed by our data protection team. For immediate privacy concerns, please email dpo@safaricom.co.ke.",
+        
+        "Internet or airtime bundle complaint": "I understand your concern about internet and airtime bundles. We're continuously working to improve our data offerings and coverage. You can check current bundle offers by dialing *544# or through the mySafaricom app.",
+        
+        "Neutral": "Thank you for your message! How can I assist you with Safaricom services today? I can help with MPESA, data bundles, network issues, or connect you with customer care.",
+        
+        "Hate Speech": "I'm here to help with Safaricom services. If you have concerns or complaints, I'd be happy to assist you in a constructive way. Please let me know how I can help improve your experience with us."
+    }
+    
+    base_response = responses.get(prediction, responses["Neutral"])
+    
+    # Add confidence-based qualifier for uncertain predictions
+    if confidence < 0.6:
+        base_response = f"I'm here to help! {base_response}"
+    
+    return base_response
 
 # -------------------------- Main --------------------------
 if __name__ == "__main__":

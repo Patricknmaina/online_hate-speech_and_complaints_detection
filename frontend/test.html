@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+</head>
+<body>
+    <h1>Test Page - If you see this, the server is working</h1>
+    <script>
+        console.log('Test page loaded successfully');
+        fetch('http://localhost:5173/src/main.tsx')
+            .then(response => response.text())
+            .then(data => console.log('main.tsx loaded:', data.substring(0, 100)))
+            .catch(err => console.error('Error loading main.tsx:', err));
+    </script>
+</body>
+</html>

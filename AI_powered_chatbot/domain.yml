@@ -1,33 +1,171 @@
 version: "3.1"
 
 intents:
+  # General conversation
   - greet
   - goodbye
   - affirm
   - deny
-  - mood_great
-  - mood_unhappy
+  - thank
   - bot_challenge
+  
+  # Safaricom services - Network issues
+  - network_slow
+  - network_down
+  - no_signal
+  - call_drops
+  - data_issues
+  
+  # MPESA issues
+  - mpesa_stuck
+  - mpesa_failed
+  - mpesa_reversal
+  - mpesa_statement
+  - mpesa_pin
+  
+  # Billing and airtime
+  - high_bill
+  - wrong_charges
+  - buy_airtime
+  - buy_data
+  - check_balance
+  
+  # Customer service
+  - talk_to_agent
+  - service_complaint
+  - service_praise
+  - service_center
+  
+  # Account issues
+  - sim_swap
+  - lost_sim
+  - unlock_sim
+  - change_number
+  - account_balance
+
+entities:
+  - amount
+  - date
+  - phone_number
+  - transaction_id
+  - location
+
+slots:
+  issue_type:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_text
+  transaction_id:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: transaction_id
 
 responses:
+  # Greetings and general
   utter_greet:
-  - text: "Hey! How are you?"
-
-  utter_cheer_up:
-  - text: "Here is something to cheer you up:"
-    image: "https://i.imgur.com/nGF1K8f.jpg"
-
-  utter_did_that_help:
-  - text: "Did that help you?"
-
-  utter_happy:
-  - text: "Great, carry on!"
+  - text: "Hello! 👋 I'm the Safaricom AI Assistant. How can I help you today?"
+  - text: "Hi there! Welcome to Safaricom support. What can I assist you with?"
+  - text: "Greetings! I'm here to help with your Safaricom queries. What do you need?"
 
   utter_goodbye:
-  - text: "Bye"
+  - text: "Thank you for contacting Safaricom! Have a great day! 🌟"
+  - text: "Goodbye! Feel free to come back if you need more help."
+  - text: "Take care! We're always here to assist you."
 
-  utter_iamabot:
-  - text: "I am a bot, powered by Rasa."
+  utter_thank:
+  - text: "You're welcome! 😊 Is there anything else I can help you with?"
+  - text: "My pleasure! Let me know if you need anything else."
+  - text: "Glad I could help! Feel free to ask if you have more questions."
+
+  utter_bot_challenge:
+  - text: "I am an AI assistant powered by Safaricom, designed to help you with your queries about our services."
+
+  # Network issues
+  utter_network_slow:
+  - text: "I'm sorry you're experiencing slow network speeds. Here are some quick fixes:\n\n1. Toggle airplane mode on/off\n2. Restart your device\n3. Check if you're in an area with good coverage\n4. Clear your network settings\n\nIf the issue persists, I can connect you with an agent. Would you like that?"
+  
+  utter_network_down:
+  - text: "I apologize for the network outage. Let me check:\n\n• Is this affecting calls, data, or both?\n• What's your location?\n• When did this start?\n\nThis will help me provide better assistance or escalate to our technical team."
+  
+  utter_no_signal:
+  - text: "No signal can be frustrating! Let's troubleshoot:\n\n1. Check if airplane mode is off\n2. Restart your device\n3. Remove and reinsert your SIM card\n4. Check for any network outages in your area\n\nAre you in your usual location or somewhere new?"
+  
+  utter_call_drops:
+  - text: "Sorry about the dropped calls. This could be due to:\n\n• Weak signal in your area\n• Network congestion\n• Device issues\n\nHave you tried restarting your phone? Also, does this happen in a specific location?"
+  
+  utter_data_issues:
+  - text: "Let's fix your data connection:\n\n1. Check if mobile data is enabled\n2. Verify you have an active data bundle\n3. Reset your APN settings\n4. Toggle airplane mode\n\nWould you like me to guide you through the APN settings?"
+
+  # MPESA issues
+  utter_mpesa_stuck:
+  - text: "I understand MPESA transactions can be stressful when stuck. Here's what to do:\n\n1. Check your MPESA statement to confirm transaction status\n2. Wait 24 hours for automatic reversal\n3. If not reversed, visit a Safaricom shop with:\n   - Your ID\n   - Transaction code\n   - Transaction date and time\n\nDo you have your transaction code?"
+  
+  utter_mpesa_failed:
+  - text: "Sorry your MPESA transaction failed. Common reasons:\n\n• Insufficient balance\n• Incorrect recipient details\n• Network timeout\n• Daily limit exceeded\n\nCheck your MPESA balance and try again. If it keeps failing, note the error message and I can help troubleshoot."
+  
+  utter_mpesa_reversal:
+  - text: "For MPESA reversals:\n\n1. Automatic reversal takes 24-72 hours\n2. Check your MPESA statement regularly\n3. For manual reversal, visit any Safaricom shop with:\n   - National ID\n   - Transaction code\n   - Date and time of transaction\n\nWhen did the transaction occur?"
+  
+  utter_mpesa_statement:
+  - text: "To get your MPESA statement:\n\n📱 Via SMS: Dial *234# and follow prompts\n📧 Via Email: Go to Safaricom Care, request M-PESA statement\n🏪 Visit: Any Safaricom shop with your ID\n\nStatements are free for the current month!"
+  
+  utter_mpesa_pin:
+  - text: "To reset your MPESA PIN:\n\n1. Dial *234#\n2. Select 'My Account'\n3. Select 'Reset PIN'\n4. You'll need your National ID number\n5. Follow the prompts to create a new PIN\n\n⚠️ Never share your PIN with anyone!"
+
+  # Billing and airtime
+  utter_high_bill:
+  - text: "I understand billing concerns. Let's investigate:\n\n1. Dial *100# to check your statement\n2. Review recent usage and charges\n3. Check for premium service subscriptions\n4. Look for roaming charges if you traveled\n\nWould you like me to help you identify specific charges?"
+  
+  utter_wrong_charges:
+  - text: "Sorry about the unexpected charges. To dispute:\n\n1. Check your bill details via *100#\n2. Note the specific charge and date\n3. Call 100 to file a dispute\n4. Or visit a Safaricom shop with your statement\n\nDisputes are resolved within 7 days. What type of charge are you questioning?"
+  
+  utter_buy_airtime:
+  - text: "Easy ways to buy airtime:\n\n💳 MPESA: *141# and follow prompts\n🏪 Shop: Visit any retailer or Safaricom shop\n📱 App: Use MySafaricom app\n💻 Online: www.safaricom.co.ke\n\nYou can also ask someone to send you airtime via *140*RecipientNumber*Amount#"
+  
+  utter_buy_data:
+  - text: "To purchase data bundles:\n\n1. Dial *544# for data bundles menu\n2. Choose daily, weekly, or monthly bundles\n3. Or use MySafaricom app for exclusive deals\n4. MPESA payment: *141# → Data bundles\n\nCurrent offers: Check *544# for latest promotions!"
+  
+  utter_check_balance:
+  - text: "Check your balances:\n\n📞 Airtime: *144#\n📊 Data: *544# → My Account → Balance\n💰 MPESA: *234# → My Account → Balance\n📱 Everything: MySafaricom app\n\nAll balance checks are FREE!"
+
+  # Customer service
+  utter_talk_to_agent:
+  - text: "I'll connect you with a human agent. You can:\n\n📞 Call: 100 (from Safaricom) or 0722000000\n💬 Twitter: @SafaricomPLC\n📧 Email: care@safaricom.co.ke\n🏪 Visit: Nearest Safaricom shop\n\nOur agents are available 24/7. Would you like the nearest shop location?"
+  
+  utter_service_complaint:
+  - text: "I'm sorry you had a bad experience. Your feedback is important! To file a complaint:\n\n1. Call 100 and ask for customer care\n2. Email: care@safaricom.co.ke with details\n3. Twitter: DM @SafaricomPLC\n4. Visit any Safaricom shop\n\nPlease provide: Issue details, date/time, any reference numbers. We aim to resolve complaints within 48 hours."
+  
+  utter_service_praise:
+  - text: "Thank you so much for the positive feedback! 🌟 We're thrilled to hear you're happy with our service!\n\nWould you like to:\n• Share your experience on social media?\n• Rate us on the MySafaricom app?\n• Tell us more about what made you happy?\n\nYour satisfaction is our priority!"
+  
+  utter_service_center:
+  - text: "To find your nearest Safaricom service center:\n\n1. Visit www.safaricom.co.ke/shops\n2. Use MySafaricom app → Locations\n3. Call 100 and ask for nearest shop\n\nWhich area are you in? I can help you find the closest one!"
+
+  # Account issues
+  utter_sim_swap:
+  - text: "For SIM swap (new SIM with same number):\n\n📋 Requirements:\n• Original National ID\n• Your registered Safaricom line\n• KES 100 fee\n\n📍 Process:\n1. Visit any Safaricom shop\n2. Present your ID\n3. Complete SIM swap form\n4. Receive new SIM immediately\n\n⚠️ Your MPESA will be locked for 72 hours for security!"
+  
+  utter_lost_sim:
+  - text: "Sorry about your lost SIM! Immediate actions:\n\n1. ⚠️ URGENT: Call 100 to block your line\n2. Or dial 0722000000 from another phone\n3. Visit Safaricom shop with ID for replacement\n4. Block MPESA: Call 0722002222\n\nThis prevents unauthorized use. Have you blocked it already?"
+  
+  utter_unlock_sim:
+  - text: "To unlock a blocked SIM:\n\n🔐 PUK Code:\n1. Find on your original SIM card packaging\n2. Or call 100 with your ID details\n3. Enter PUK code when prompted\n4. Create new PIN\n\n⚠️ 10 wrong PUK attempts = permanent block!\n\nDo you have your PUK code?"
+  
+  utter_change_number:
+  - text: "To get a new number (number change):\n\n📋 Visit Safaricom shop with:\n• National ID\n• Current SIM\n• Fee varies by number type\n\n💡 Options:\n• Random number: Lower fee\n• Choice number: Higher fee\n• VIP number: Premium fee\n\nNote: You'll lose your current number permanently!"
+  
+  utter_account_balance:
+  - text: "Check all your account balances:\n\n💰 Airtime: *144#\n📊 Data: *544# → Balance\n💸 MPESA: *234# → My Account\n📱 Comprehensive view: MySafaricom app\n\nAll checks are FREE and instant!"
+
+  # Fallback responses
+  utter_default:
+  - text: "I'm not sure I understood that correctly. Could you rephrase your question?\n\nI can help with:\n• Network issues\n• MPESA problems\n• Billing questions\n• Data and airtime\n• Account services\n\nOr type 'agent' to talk to a human."
+  
+  utter_ask_rephrase:
+  - text: "Sorry, I didn't quite get that. Could you explain your issue differently?\n\nFor faster help, try asking about:\n✓ Network problems\n✓ MPESA issues  \n✓ Billing concerns\n✓ Service questions"
 
 session_config:
   session_expiration_time: 60

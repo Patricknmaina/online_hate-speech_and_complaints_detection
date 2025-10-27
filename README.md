@@ -108,8 +108,8 @@ The pipeline is **scikit-learn compatible** for seamless ML integration.
 
 ### **Transformer Models (Deep Learning)**
 
+* **mBERT** (fine-tuned, deployed default for smaller footprint)
 * **XLM-RoBERTa** (fine-tuned)
-* **mBERT** (fine-tuned)
 
 **Evaluation Metrics:** Accuracy, Precision, Recall, F1-score
 
@@ -139,7 +139,7 @@ The pipeline is **scikit-learn compatible** for seamless ML integration.
 * Serves predictions from both:
 
   * **Logistic Regression (lightweight, fast)**
-  * **XLM-RoBERTa (deep, accurate)**
+  * **mBERT Transformer (default in deployment due to size/latency)**
 * Provides REST API endpoints for single & batch predictions.
 
 ### **3. Model Hosting (Hugging Face Hub)**
@@ -253,4 +253,3 @@ To extend the impact and scalability of this system, the following enhancements 
 
 ## **License**
 MIT License - see LICENSE file for details
-

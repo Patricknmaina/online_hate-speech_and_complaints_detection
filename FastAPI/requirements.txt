@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+pydantic
+scikit-learn
+pandas
+numpy
+joblib
+nltk
+transformers
+torch
+requests
+rasa
+huggingface_hub
