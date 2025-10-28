@@ -11,3 +11,4 @@ torch
 requests
 rasa
 huggingface_hub
+psutil
