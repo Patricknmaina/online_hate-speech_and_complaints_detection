@@ -386,6 +386,7 @@ app = FastAPI(
 
 origins = [
     "https://safarimeter-v2.netlify.app",
+    "https://safarimeter.netlify.app",
     "http://localhost:3000",
     "http://localhost:5173",
     "http://localhost:5174",
