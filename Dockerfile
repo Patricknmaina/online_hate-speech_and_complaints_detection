@@ -40,6 +40,7 @@ RUN adduser --disabled-password --gecos '' appuser && \
 
 # Sensible defaults (override via Render/compose envs)
 ENV HF_MODEL_REPO=patrickmaina/safaricom-hatespeech-detector \
+    HF_INFERENCE_BASE=https://router.huggingface.co/hf-inference \
     USE_LIGHTWEIGHT_MODEL=false \
     ENABLE_MODEL_QUANTIZATION=true \
     MODEL_CACHE_SIZE=1 \

@@ -55,9 +55,10 @@ class Config:
     VECTORIZER_PATH = os.getenv("VECTORIZER_PATH", "models/vectorizer.pkl")
     
     # Hugging Face settings
-    # Default to mBERT; override with your fine-tuned mBERT repo via env
+    # Default to your fine-tuned repo; switchable base for Providers router
     HF_MODEL_REPO = os.getenv("HF_MODEL_REPO", "patrickmaina/safaricom-hatespeech-detector")
-    HF_API_URL = f"https://api-inference.huggingface.co/models/{HF_MODEL_REPO}"
+    HF_INFERENCE_BASE = os.getenv("HF_INFERENCE_BASE", "https://router.huggingface.co/hf-inference")
+    HF_API_URL = f"{HF_INFERENCE_BASE}/models/{HF_MODEL_REPO}"
     
     @classmethod
     def should_use_hf_inference(cls) -> bool:

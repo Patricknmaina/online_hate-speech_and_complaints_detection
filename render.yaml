@@ -22,6 +22,8 @@ services:
       # Transformer defaults (mBERT). Override with your fine-tuned repo if needed.
       - key: HF_MODEL_REPO
         value: patrickmaina/safaricom-hatespeech-detector
+      - key: HF_INFERENCE_BASE
+        value: https://router.huggingface.co/hf-inference
       # Prefer using HF Inference API on Render to avoid large downloads
       - key: USE_LIGHTWEIGHT_MODEL
         value: "true"
