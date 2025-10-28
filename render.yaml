@@ -1,8 +1,9 @@
 services:
   - type: web
-    runtime: python
+    runtime: docker
     name: safarimeter-backend
     rootDir: .
+    dockerfilePath: Dockerfile
     autoDeploy: true
     healthCheckPath: /health
     # Optional: pick a region, plan, and scaling as needed
@@ -35,7 +36,7 @@ services:
       - key: RASA_URL
         value: http://localhost:5005
 
-      # Set your Hugging Face token as a Render secret named `hf-token`
+      # Set HF_TOKEN in the Render dashboard after creating the service (recommended)
       - key: HF_TOKEN
         value: ""
 
