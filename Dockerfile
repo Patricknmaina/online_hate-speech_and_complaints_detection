@@ -29,9 +29,21 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 WORKDIR /app
 COPY FastAPI/ ./
 
+# Install runtime utilities needed by healthchecks (docker-compose uses curl)
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN adduser --disabled-password --gecos '' appuser && \
     chown -R appuser:appuser /app && \
     mkdir -p models data_prep logs
+
+# Sensible defaults (override via Render/compose envs)
+ENV HF_MODEL_REPO=patrickmaina/safaricom-hatespeech-detector \
+    USE_LIGHTWEIGHT_MODEL=false \
+    ENABLE_MODEL_QUANTIZATION=true \
+    MODEL_CACHE_SIZE=1 \
+    MAX_MEMORY_MB=2048
 
 USER appuser
 EXPOSE 8000

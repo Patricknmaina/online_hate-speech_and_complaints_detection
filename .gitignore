@@ -37,3 +37,6 @@ Frontend/node_modules
 # local environment files
 FastAPI/.env
 FastAPI/.env.example
+
+# markdowns
+FastAPI/RENDER_DEPLOYMENT_GUIDE.md
