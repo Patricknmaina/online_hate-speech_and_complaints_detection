@@ -1,0 +1,15 @@
+[build]
+  base = "frontend"
+  publish = "frontend/dist"
+  command = "npm ci && npm run build"
+
+# Pass API base URL at build time (override in Netlify UI as needed)
+[build.environment]
+  VITE_API_BASE_URL = "https://hatespeech-detector-23c8.onrender.com"
+
+# SPA fallback so route refreshes don’t 404
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
