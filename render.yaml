@@ -1,0 +1,51 @@
+services:
+  - type: web
+    runtime: python
+    name: safarimeter-backend
+    rootDir: .
+    autoDeploy: true
+    healthCheckPath: /health
+    # Optional: pick a region, plan, and scaling as needed
+    # region: oregon
+    # plan: starter
+    # numInstances: 1
+
+    envVars:
+      - key: LOG_LEVEL
+        value: INFO
+      - key: SKLEARN_MODEL_PATH
+        value: models/best_model.pkl
+      - key: VECTORIZER_PATH
+        value: models/vectorizer.pkl
+
+      # Transformer defaults (mBERT). Override with your fine-tuned repo if needed.
+      - key: HF_MODEL_REPO
+        value: patrickmaina/safaricom-hatespeech-detector
+      # Prefer using HF Inference API on Render to avoid large downloads
+      - key: USE_LIGHTWEIGHT_MODEL
+        value: "true"
+      - key: ENABLE_MODEL_QUANTIZATION
+        value: "true"
+      - key: MODEL_CACHE_SIZE
+        value: "1"
+      - key: MAX_MEMORY_MB
+        value: "2048"
+
+      # Chatbot (Rasa) integration
+      - key: RASA_URL
+        value: http://localhost:5005
+
+      # Set your Hugging Face token as a Render secret named `hf-token`
+      - key: HF_TOKEN
+        value: ""
+
+    # Optional: attach a disk if you want to cache transformer models locally
+    # disks:
+    #   - name: model-cache
+    #     mountPath: /var/data
+    #     sizeGB: 2
+    # envVars:
+    #   - key: HF_HOME
+    #     value: /var/data/hf
+    #   - key: TRANSFORMERS_CACHE
+    #     value: /var/data/hf

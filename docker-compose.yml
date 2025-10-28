@@ -15,7 +15,7 @@ services:
       - MAX_MEMORY_MB=2048
       - MODEL_CACHE_SIZE=1
       - ENABLE_MODEL_QUANTIZATION=true
-      - HF_MODEL_REPO=${HF_MODEL_REPO:-bert-base-multilingual-cased}
+      - HF_MODEL_REPO=${HF_MODEL_REPO:-patrickmaina/safaricom-hatespeech-detector}
       - HF_TOKEN=${HF_TOKEN:-}
     volumes:
       - ./models:/app/models
