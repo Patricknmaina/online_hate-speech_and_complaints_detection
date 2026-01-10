@@ -6,9 +6,7 @@ pandas
 numpy
 joblib
 nltk
-transformers
-torch
 requests
-rasa
-huggingface_hub
 psutil
+openai
+python-dotenv
