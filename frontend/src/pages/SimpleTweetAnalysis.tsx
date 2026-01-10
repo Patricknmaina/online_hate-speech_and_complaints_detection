@@ -1,22 +1,24 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  FileText, 
-  Search, 
-  AlertCircle, 
-  CheckCircle, 
+import {
+  FileText,
+  Search,
+  AlertCircle,
+  CheckCircle,
   MessageCircle,
-  TrendingUp,
   BarChart3,
-  PieChart as PieChartIcon
+  PieChart as PieChartIcon,
+  RefreshCw
 } from 'lucide-react';
 import { predictTweet, TweetResponse } from '../services/api';
 import { useApi } from '../contexts/ApiContext';
+import { useToast } from '../contexts/ToastContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
 const SimpleTweetAnalysis: React.FC = () => {
   const { modelChoice } = useApi();
+  const { showToast } = useToast();
   const [tweetText, setTweetText] = useState('');
   const [userId, setUserId] = useState('');
   const [result, setResult] = useState<TweetResponse | null>(null);
@@ -55,22 +57,34 @@ const SimpleTweetAnalysis: React.FC = () => {
     try {
       const response = await predictTweet(
         { text: tweetText, user_id: userId || undefined },
-        modelChoice === 'Transformer'
+        modelChoice
       );
 
       if (response.success && response.data) {
         setResult(response.data);
+        showToast('success', `Tweet classified as "${response.data.prediction}" with ${(response.data.confidence * 100).toFixed(1)}% confidence`);
       } else {
-        setError(response.error || 'Failed to analyze tweet');
+        const errorMsg = response.error || 'Failed to analyze tweet';
+        setError(errorMsg);
         setResult(null);
+        showToast('error', errorMsg);
       }
     } catch (error) {
       console.error('Error analyzing tweet:', error);
-      setError('An unexpected error occurred');
+      const errorMsg = 'An unexpected error occurred. Please check your connection and try again.';
+      setError(errorMsg);
       setResult(null);
+      showToast('error', errorMsg);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAnalyzeAnother = () => {
+    setTweetText('');
+    setUserId('');
+    setResult(null);
+    setError(null);
   };
 
   const pieData = result ? Object.entries(result.probabilities).map(([key, value]) => ({
@@ -471,6 +485,24 @@ const SimpleTweetAnalysis: React.FC = () => {
               </motion.div>
             </div>
           </div>
+
+          {/* Analyze Another Button */}
+          <motion.div
+            className="flex justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <motion.button
+              onClick={handleAnalyzeAnother}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 flex items-center space-x-3 shadow-lg"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <RefreshCw className="w-5 h-5" />
+              <span>Analyze Another Tweet</span>
+            </motion.button>
+          </motion.div>
 
           {/* Enhanced Probabilities Table */}
           <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-800 dark:to-gray-900 rounded-xl shadow-xl border border-purple-200 dark:border-gray-700 overflow-hidden">

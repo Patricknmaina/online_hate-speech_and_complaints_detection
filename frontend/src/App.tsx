@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ApiProvider } from './contexts/ApiContext';
+import { ToastProvider } from './contexts/ToastContext';
 import SimpleHeader from './components/SimpleHeader';
 import SimpleHomePage from './pages/SimpleHomePage';
 import SimpleTweetAnalysis from './pages/SimpleTweetAnalysis';
@@ -16,7 +17,8 @@ function App() {
   return (
     <ThemeProvider>
       <ApiProvider>
-        <Router>
+        <ToastProvider>
+          <Router>
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
             <SimpleHeader />
             <main className="container mx-auto px-4 py-8">
@@ -43,7 +45,8 @@ function App() {
               </div>
             </motion.footer>
           </div>
-        </Router>
+          </Router>
+        </ToastProvider>
       </ApiProvider>
     </ThemeProvider>
   );

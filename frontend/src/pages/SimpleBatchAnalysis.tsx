@@ -8,27 +8,35 @@ import {
   AlertCircle,
   BarChart3,
   PieChart as PieChartIcon,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw
 } from 'lucide-react';
 import { predictBatchTweets, TweetResponse } from '../services/api';
 import { useApi } from '../contexts/ApiContext';
+import { useToast } from '../contexts/ToastContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
 const SimpleBatchAnalysis: React.FC = () => {
   const { modelChoice } = useApi();
+  const { showToast } = useToast();
   const [file, setFile] = useState<File | null>(null);
   const [results, setResults] = useState<TweetResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const resultsPerPage = 20;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile && selectedFile.type === 'text/csv') {
       setFile(selectedFile);
+      showToast('success', `File "${selectedFile.name}" selected successfully`);
     } else {
-      alert('Please select a valid CSV file');
+      showToast('error', 'Please select a valid CSV file');
     }
   };
 
@@ -57,31 +65,41 @@ const SimpleBatchAnalysis: React.FC = () => {
 
     setLoading(true);
     setError(null);
+    setCurrentPage(1);
 
     try {
       const csvText = await file.text();
       const tweets = parseCsv(csvText);
 
       if (tweets.length === 0) {
-        setError('No valid tweets found in the CSV file');
+        const errorMsg = 'No valid tweets found in the CSV file';
+        setError(errorMsg);
+        showToast('error', errorMsg);
         return;
       }
 
+      showToast('info', `Processing ${tweets.length} tweets...`);
+
       const response = await predictBatchTweets(
         tweets,
-        modelChoice === 'Transformer'
+        modelChoice
       );
 
       if (response.success && response.data) {
         setResults(response.data.predictions);
+        showToast('success', `Successfully analyzed ${response.data.predictions.length} tweets!`);
       } else {
-        setError(response.error || 'Failed to analyze batch tweets');
+        const errorMsg = response.error || 'Failed to analyze batch tweets';
+        setError(errorMsg);
         setResults([]);
+        showToast('error', errorMsg);
       }
     } catch (error) {
       console.error('Error analyzing batch:', error);
-      setError('Error processing file: ' + (error as Error).message);
+      const errorMsg = 'Error processing file: ' + (error as Error).message;
+      setError(errorMsg);
       setResults([]);
+      showToast('error', errorMsg);
     } finally {
       setLoading(false);
     }
@@ -138,6 +156,22 @@ const SimpleBatchAnalysis: React.FC = () => {
 
     return responses[prediction] || responses['Neutral'];
   };
+
+  const handleAnalyzeAnother = () => {
+    setFile(null);
+    setResults([]);
+    setError(null);
+    setCurrentPage(1);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Pagination calculations
+  const totalPages = Math.ceil(results.length / resultsPerPage);
+  const startIndex = (currentPage - 1) * resultsPerPage;
+  const endIndex = startIndex + resultsPerPage;
+  const paginatedResults = results.slice(startIndex, endIndex);
 
   // Prepare chart data
   const predictionCounts = results.reduce((acc, result) => {
@@ -546,7 +580,7 @@ const SimpleBatchAnalysis: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {results.slice(0, 100).map((result, index) => {
+                  {paginatedResults.map((result, index) => {
                     const confidenceColor = result.confidence > 0.8 ? 'text-green-600 dark:text-green-400' :
                                            result.confidence > 0.6 ? 'text-yellow-600 dark:text-yellow-400' :
                                            'text-red-600 dark:text-red-400';
@@ -555,7 +589,7 @@ const SimpleBatchAnalysis: React.FC = () => {
                                         'bg-red-100 dark:bg-red-900';
 
                     return (
-                      <tr key={index} className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200">
+                      <tr key={startIndex + index} className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200">
                         <td className="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-xs border-r border-gray-100 dark:border-gray-700">
                           <div className="truncate" title={result.text}>
                             <span className="text-blue-800 dark:text-blue-300 font-medium">
@@ -596,17 +630,90 @@ const SimpleBatchAnalysis: React.FC = () => {
                 </tbody>
               </table>
             </div>
-            {results.length > 100 && (
-              <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 text-center">
-                <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center justify-center">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                  <span className="font-semibold">Showing first 100 results</span>
-                  <span className="mx-2">•</span>
-                  <span>Download full results using the buttons above</span>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 border-t border-gray-200 dark:border-gray-600">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Showing {startIndex + 1} to {Math.min(endIndex, results.length)} of {results.length} results
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <motion.button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      whileHover={{ scale: currentPage === 1 ? 1 : 1.05 }}
+                      whileTap={{ scale: currentPage === 1 ? 1 : 0.95 }}
+                      aria-label="Previous page"
+                    >
+                      <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                    </motion.button>
+
+                    <div className="flex items-center space-x-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+
+                        return (
+                          <motion.button
+                            key={pageNum}
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
+                              currentPage === pageNum
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+                            }`}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            {pageNum}
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+
+                    <motion.button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      whileHover={{ scale: currentPage === totalPages ? 1 : 1.05 }}
+                      whileTap={{ scale: currentPage === totalPages ? 1 : 0.95 }}
+                      aria-label="Next page"
+                    >
+                      <ChevronRight className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                    </motion.button>
+                  </div>
                 </div>
               </div>
             )}
           </div>
+
+          {/* Analyze Another Button */}
+          <motion.div
+            className="flex justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <motion.button
+              onClick={handleAnalyzeAnother}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 flex items-center space-x-3 shadow-lg"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <RefreshCw className="w-5 h-5" />
+              <span>Analyze Another File</span>
+            </motion.button>
+          </motion.div>
         </motion.div>
       )}
     </motion.div>

@@ -12,6 +12,7 @@ export interface TweetResponse {
   confidence: number;
   probabilities: { [key: string]: number };
   user_id?: string;
+  model_used?: string;
 }
 
 export interface HealthResponse {
@@ -19,16 +20,32 @@ export interface HealthResponse {
   message: string;
   model_info: {
     sklearn_loaded: boolean;
-    transformer_loaded: boolean;
+    openai_available: boolean;
+    openai_model: string | null;
     sklearn_model_type: string | null;
-    transformer_model_type: string | null;
+    memory_usage: string;
+    available_memory_mb: number;
+  };
+  system_info: {
+    memory_usage_percent: number;
+    available_memory_gb: number;
+    cpu_usage_percent: number;
+    timestamp: string;
   };
 }
 
 export interface ModelInfo {
-  sklearn_model_type: string | null;
-  transformer_model_type: string | null;
-  transformer_classes: { [key: string]: string } | null;
+  model_info: {
+    sklearn_loaded: boolean;
+    openai_available: boolean;
+    openai_model: string | null;
+    sklearn_model_type: string | null;
+  };
+  config: {
+    openai_model: string;
+    use_sklearn_only: boolean;
+    categories: string[];
+  };
 }
 
 // Enhanced response wrapper for better error handling
@@ -43,6 +60,7 @@ export interface ApiResponse<T> {
 export interface ChatRequest {
   message: string;
   sender_id?: string;
+  conversation_history?: Array<{ role: string; content: string }>;
 }
 
 export interface ChatMessage {
@@ -58,14 +76,18 @@ export interface ChatResponse {
   responses: ChatMessage[];
   sender_id: string;
   timestamp: string;
+  model_used?: string;
 }
 
 export interface ChatStatus {
-  rasa_available: boolean;
-  rasa_url: string;
+  openai_available: boolean;
+  model: string;
   fallback_mode: boolean;
   status: string;
 }
+
+// Model types for the frontend
+export type ModelType = 'OpenAI' | 'Sklearn';
 
 // API functions
 export const checkApiHealth = async (): Promise<ApiResponse<HealthResponse>> => {
@@ -76,36 +98,37 @@ export const checkApiHealth = async (): Promise<ApiResponse<HealthResponse>> => 
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (response.ok) {
       const data = await response.json();
-      return { 
-        success: true, 
+      return {
+        success: true,
         data,
-        status: response.status 
+        status: response.status
       };
     } else {
       const errorText = await response.text();
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: `API returned status ${response.status}: ${errorText}`,
-        status: response.status 
+        status: response.status
       };
     }
   } catch (error) {
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to connect to FastAPI backend' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to connect to FastAPI backend'
     };
   }
 };
 
 export const predictTweet = async (
-  request: TweetRequest, 
-  useTransformer: boolean = true
+  request: TweetRequest,
+  modelType: ModelType = 'OpenAI'
 ): Promise<ApiResponse<TweetResponse>> => {
   try {
-    const endpoint = useTransformer ? '/predict/transformer' : '/predict';
+    // Map model type to endpoint
+    const endpoint = modelType === 'OpenAI' ? '/predict/openai' : '/predict';
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {
@@ -116,34 +139,35 @@ export const predictTweet = async (
 
     if (response.ok) {
       const data = await response.json();
-      return { 
-        success: true, 
+      return {
+        success: true,
         data,
-        status: response.status 
+        status: response.status
       };
     } else {
       const errorText = await response.text();
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: `Prediction failed (${response.status}): ${errorText}`,
-        status: response.status 
+        status: response.status
       };
     }
   } catch (error) {
     console.error('Error predicting tweet:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Network error - ensure FastAPI backend is running' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error - ensure FastAPI backend is running'
     };
   }
 };
 
 export const predictBatchTweets = async (
-  tweets: TweetRequest[], 
-  useTransformer: boolean = true
+  tweets: TweetRequest[],
+  modelType: ModelType = 'OpenAI'
 ): Promise<ApiResponse<{ predictions: TweetResponse[] }>> => {
   try {
-    const endpoint = useTransformer ? '/predict/transformer/batch' : '/predict/batch';
+    // Map model type to endpoint
+    const endpoint = modelType === 'OpenAI' ? '/predict/openai/batch' : '/predict/batch';
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {
@@ -154,24 +178,24 @@ export const predictBatchTweets = async (
 
     if (response.ok) {
       const data = await response.json();
-      return { 
-        success: true, 
+      return {
+        success: true,
         data,
-        status: response.status 
+        status: response.status
       };
     } else {
       const errorText = await response.text();
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: `Batch prediction failed (${response.status}): ${errorText}`,
-        status: response.status 
+        status: response.status
       };
     }
   } catch (error) {
     console.error('Error predicting batch tweets:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Network error - ensure FastAPI backend is running' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error - ensure FastAPI backend is running'
     };
   }
 };
@@ -187,24 +211,24 @@ export const getModelInfo = async (): Promise<ApiResponse<ModelInfo>> => {
 
     if (response.ok) {
       const data = await response.json();
-      return { 
-        success: true, 
+      return {
+        success: true,
         data,
-        status: response.status 
+        status: response.status
       };
     } else {
       const errorText = await response.text();
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: `Failed to get model info (${response.status}): ${errorText}`,
-        status: response.status 
+        status: response.status
       };
     }
   } catch (error) {
     console.error('Error getting model info:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Network error - ensure FastAPI backend is running' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error - ensure FastAPI backend is running'
     };
   }
 };
@@ -222,24 +246,24 @@ export const sendChatMessage = async (request: ChatRequest): Promise<ApiResponse
 
     if (response.ok) {
       const data: ChatResponse = await response.json();
-      return { 
-        success: true, 
+      return {
+        success: true,
         data,
-        status: response.status 
+        status: response.status
       };
     } else {
       const errorText = await response.text();
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: `Chat request failed (${response.status}): ${errorText}`,
-        status: response.status 
+        status: response.status
       };
     }
   } catch (error) {
     console.error('Error sending chat message:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Network error - ensure FastAPI backend is running' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error - ensure FastAPI backend is running'
     };
   }
 };
@@ -250,24 +274,24 @@ export const getChatStatus = async (): Promise<ApiResponse<ChatStatus>> => {
 
     if (response.ok) {
       const data: ChatStatus = await response.json();
-      return { 
-        success: true, 
+      return {
+        success: true,
         data,
-        status: response.status 
+        status: response.status
       };
     } else {
       const errorText = await response.text();
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: `Failed to get chat status (${response.status}): ${errorText}`,
-        status: response.status 
+        status: response.status
       };
     }
   } catch (error) {
     console.error('Error getting chat status:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Network error - ensure FastAPI backend is running' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error - ensure FastAPI backend is running'
     };
   }
 };

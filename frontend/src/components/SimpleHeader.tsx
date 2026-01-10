@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Home, FileText, Upload, Bot, Info, Sun, Moon, Settings, MessageSquare } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useApi } from '../contexts/ApiContext';
+import { ModelType } from '../services/api';
 
 const SimpleHeader: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
@@ -90,11 +91,12 @@ const SimpleHeader: React.FC = () => {
               <Settings className="w-5 h-5 text-gray-500 dark:text-gray-400" />
               <select
                 value={modelChoice}
-                onChange={(e) => setModelChoice(e.target.value as 'Transformer' | 'Sklearn')}
+                onChange={(e) => setModelChoice(e.target.value as ModelType)}
                 className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Select AI model"
               >
-                <option value="Transformer">Transformer</option>
-                <option value="Sklearn">Sklearn</option>
+                <option value="OpenAI">OpenAI GPT-4o</option>
+                <option value="Sklearn">Sklearn (Fallback)</option>
               </select>
             </motion.div>
 
