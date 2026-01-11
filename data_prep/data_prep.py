@@ -8,10 +8,11 @@ Data containing text and labels is read from a CSV file and different preprocess
 The cleaned data is then split into training, validation, and test sets, ensuring stratification of labels.
 """
 
+import collections
 import re
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
-import collections
 
 
 class SafaricomPreprocessor:

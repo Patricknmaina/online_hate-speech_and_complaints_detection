@@ -5,37 +5,30 @@ Falls back to sklearn model when OpenAI is unavailable
 """
 
 # -------------------------- Imports --------------------------
-from fastapi import FastAPI, HTTPException, BackgroundTasks
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Dict, Any, Optional, List
-import logging
-import gc
-from functools import lru_cache
-from contextlib import asynccontextmanager
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
-
-import pandas as pd
-import numpy as np
-import joblib
+import gc
+import logging
 import os
 import sys
-import psutil
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import asynccontextmanager
 from datetime import datetime
+from functools import lru_cache
+from typing import Any, Dict, List, Optional
+
+import joblib
+import nltk
+import pandas as pd
+import psutil
 from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from openai import OpenAI
+from pydantic import BaseModel
 
 # Load environment variables
 load_dotenv()
 
-# For NLP preprocessing
-import nltk
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
-
-# OpenAI
-from openai import OpenAI
 
 # -------------------------- Configuration --------------------------
 class Config:
