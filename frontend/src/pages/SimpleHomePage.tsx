@@ -1,17 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  MessageSquare, 
-  Upload, 
-  Bot, 
-  TrendingUp, 
-  Shield, 
-  Zap, 
+import {
+  MessageSquare,
+  Upload,
+  Bot,
+  TrendingUp,
+  Shield,
+  Zap,
   BarChart3,
   ArrowRight,
-  Sparkles,
-  CheckCircle
+  Sparkles
 } from 'lucide-react';
 
 const SimpleHomePage: React.FC = () => {

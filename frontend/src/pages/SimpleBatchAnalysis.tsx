@@ -7,7 +7,6 @@ import {
   CheckCircle,
   AlertCircle,
   BarChart3,
-  PieChart as PieChartIcon,
   FileSpreadsheet,
   ChevronLeft,
   ChevronRight,
@@ -400,7 +399,7 @@ const SimpleBatchAnalysis: React.FC = () => {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percentage }: any) => `${name.length > 15 ? name.substring(0, 15) + '...' : name}: ${percentage}%`}
+                    label={({ name, percent }) => `${(name || '').length > 15 ? (name || '').substring(0, 15) + '...' : name}: ${((percent || 0) * 100).toFixed(0)}%`}
                     outerRadius={120}
                     innerRadius={40}
                     fill="#8884d8"
@@ -416,7 +415,7 @@ const SimpleBatchAnalysis: React.FC = () => {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: any) => [value, 'Count']}
+                    formatter={(value) => [value, 'Count']}
                     contentStyle={{
                       backgroundColor: 'rgba(255, 255, 255, 0.95)',
                       border: '1px solid #e5e7eb',
@@ -477,7 +476,7 @@ const SimpleBatchAnalysis: React.FC = () => {
                     tick={{ fill: '#6B7280' }}
                   />
                   <Tooltip
-                    formatter={(value: any) => [value, 'Count']}
+                    formatter={(value) => [value, 'Count']}
                     labelFormatter={(label) => `Prediction: ${label}`}
                     contentStyle={{
                       backgroundColor: 'rgba(255, 255, 255, 0.95)',

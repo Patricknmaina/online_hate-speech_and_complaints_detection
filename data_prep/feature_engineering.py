@@ -8,14 +8,13 @@ from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from typing import Tuple, Optional, List
-import warnings
 
 # Download required NLTK data
 try:
     nltk.download('punkt', quiet=True)
     nltk.download('stopwords', quiet=True)
     nltk.download('wordnet', quiet=True)
-except:
+except Exception:
     pass
 
 

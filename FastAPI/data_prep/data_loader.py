@@ -1,7 +1,5 @@
 import pandas as pd
 import numpy as np
-import plotly.express as px
-from typing import Optional, Tuple
 
 
 class DataLoader:
