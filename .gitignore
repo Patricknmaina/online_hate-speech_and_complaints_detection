@@ -51,3 +51,20 @@ uv.lock
 
 # pem files
 *.pem
+
+# pytest and lint files
+.pytest_cache/
+.ruff_cache/
+
+# dev container
+.devcontainer/
+
+# chatbot
+AI_powered_chatbot/
+
+# project notebook
+patrick.ipynb
+
+# render files
+render.yaml
+run.sh
