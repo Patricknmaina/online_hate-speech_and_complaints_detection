@@ -8,8 +8,8 @@ This script demonstrates how to perform zero-shot classification using both a pr
 """
 
 import pandas as pd
-from transformers import pipeline
 from openai import OpenAI
+from transformers import pipeline
 
 # load the dataset
 df = pd.read_csv("test.csv")

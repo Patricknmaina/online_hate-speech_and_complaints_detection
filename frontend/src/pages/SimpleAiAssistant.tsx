@@ -76,7 +76,7 @@ const SimpleAiAssistant: React.FC = () => {
         };
         setMessages(prev => [...prev, errorMessage]);
       }
-    } catch (error) {
+    } catch {
       const errorMessage: ChatMessage = {
         id: Date.now() + 1,
         role: 'assistant',
@@ -106,7 +106,7 @@ const SimpleAiAssistant: React.FC = () => {
     'Can you help me with my account issues?'
   ];
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -139,19 +139,19 @@ const SimpleAiAssistant: React.FC = () => {
           Chat with the AI about Safaricom services and get instant responses.
         </p>
         {chatStatus && (
-          <motion.div 
+          <motion.div
             className="inline-flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-700"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200 }}
           >
-            <motion.div 
-              className={`w-2 h-2 rounded-full ${chatStatus.rasa_available ? 'bg-green-500' : 'bg-yellow-500'}`}
+            <motion.div
+              className={`w-2 h-2 rounded-full ${chatStatus.openai_available ? 'bg-green-500' : 'bg-yellow-500'}`}
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
             />
             <span className="text-gray-700 dark:text-gray-300">
-              {chatStatus.rasa_available ? 'Advanced AI Mode' : 'Fallback Mode'}
+              {chatStatus.openai_available ? `GPT-4o-mini` : 'Fallback Mode'}
             </span>
           </motion.div>
         )}
@@ -245,7 +245,7 @@ const SimpleAiAssistant: React.FC = () => {
               <textarea
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
                 placeholder="Type a tweet or question..."
                 className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white resize-none"
                 rows={2}

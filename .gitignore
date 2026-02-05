@@ -1,6 +1,7 @@
 # python virtual environment
 env/
 venv/
+.venv/
 
 # vscode folder
 .vscode
@@ -37,9 +38,9 @@ Frontend/node_modules
 
 # local environment files
 FastAPI/.env
-FastAPI/.env.example
 *.env
 *.env.production
+!FastAPI/.env.example
 
 # markdowns
 FastAPI/RENDER_DEPLOYMENT_GUIDE.md

@@ -76,7 +76,7 @@ const AiAssistant: React.FC = () => {
         };
         setMessages(prev => [...prev, errorMessage]);
       }
-    } catch (error) {
+    } catch {
       const errorMessage: ChatMessage = {
         id: Date.now() + 1,
         role: 'assistant',

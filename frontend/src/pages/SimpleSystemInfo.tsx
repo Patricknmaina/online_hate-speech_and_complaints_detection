@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Server, RefreshCw, Info, CheckCircle, AlertCircle, Bot, Cpu, Activity } from 'lucide-react';
+import { RefreshCw, Info, Zap, Brain, MessageSquare, BarChart3 } from 'lucide-react';
 import { checkApiHealth, getModelInfo, getChatStatus, HealthResponse, ModelInfo, ChatStatus } from '../services/api';
 import StatusBadge from '../components/SimpleStatusBadge';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -78,13 +78,13 @@ const SimpleSystemInfo: React.FC = () => {
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="max-w-4xl mx-auto space-y-8 pb-8"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <motion.div 
+      <motion.div
         className="text-center space-y-4"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -95,7 +95,7 @@ const SimpleSystemInfo: React.FC = () => {
           System Information
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300">
-          View the current status of the API, chatbot, and model details.
+          View the current status of the API, AI models, and system resources.
         </p>
         <motion.button
           onClick={fetchSystemInfo}
@@ -124,7 +124,7 @@ const SimpleSystemInfo: React.FC = () => {
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0">
               <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
-                <span className="text-red-600 dark:text-red-400 text-sm">⚠️</span>
+                <span className="text-red-600 dark:text-red-400 text-sm">!</span>
               </div>
             </div>
             <div className="flex-1">
@@ -136,7 +136,7 @@ const SimpleSystemInfo: React.FC = () => {
               </p>
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
                 <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  <strong>💡 Quick Fix:</strong> Make sure your FastAPI backend is running on http://localhost:8000
+                  <strong>Quick Fix:</strong> Make sure your FastAPI backend is running on http://localhost:8000
                 </p>
                 <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
                   Start the backend: <code className="bg-yellow-100 dark:bg-yellow-800 px-2 py-1 rounded">cd FastAPI && python main.py</code>
@@ -156,14 +156,14 @@ const SimpleSystemInfo: React.FC = () => {
       {/* API Status */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex items-center space-x-3 mb-4">
-          <span className="text-2xl">🖥️</span>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">🚀 API Status</h2>
+          <Zap className="w-6 h-6 text-green-500" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">API Status</h2>
         </div>
 
         {apiHealthy && healthInfo ? (
           <div className="space-y-4">
             <StatusBadge type="success">
-              <strong>FastAPI Endpoint:</strong> Connected ✅
+              <strong>FastAPI Endpoint:</strong> Connected
             </StatusBadge>
 
             <div className="grid md:grid-cols-2 gap-4">
@@ -177,27 +177,16 @@ const SimpleSystemInfo: React.FC = () => {
               </div>
 
               <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Model Loading Status</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">System Resources</h3>
                 <div className="space-y-2 text-sm">
                   <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-medium text-gray-900 dark:text-white">Sklearn Model:</span>
-                    <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                      healthInfo.model_info.sklearn_loaded
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                    }`}>
-                      {healthInfo.model_info.sklearn_loaded ? 'Loaded' : 'Not Loaded'}
-                    </span>
+                    <span className="font-medium text-gray-900 dark:text-white">Memory Usage:</span> {healthInfo.system_info.memory_usage_percent.toFixed(1)}%
                   </p>
                   <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-medium text-gray-900 dark:text-white">Transformer Model:</span>
-                    <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                      healthInfo.model_info.transformer_loaded
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                    }`}>
-                      {healthInfo.model_info.transformer_loaded ? 'Loaded' : 'Not Loaded'}
-                    </span>
+                    <span className="font-medium text-gray-900 dark:text-white">Available Memory:</span> {healthInfo.system_info.available_memory_gb.toFixed(2)} GB
+                  </p>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    <span className="font-medium text-gray-900 dark:text-white">CPU Usage:</span> {healthInfo.system_info.cpu_usage_percent.toFixed(1)}%
                   </p>
                 </div>
               </div>
@@ -206,7 +195,7 @@ const SimpleSystemInfo: React.FC = () => {
         ) : (
           <div className="space-y-4">
             <StatusBadge type="error">
-              <strong>FastAPI Endpoint:</strong> Disconnected ❌
+              <strong>FastAPI Endpoint:</strong> Disconnected
             </StatusBadge>
 
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
@@ -218,37 +207,114 @@ const SimpleSystemInfo: React.FC = () => {
         )}
       </div>
 
+      {/* AI Models Status */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex items-center space-x-3 mb-4">
+          <Brain className="w-6 h-6 text-purple-500" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">AI Models</h2>
+        </div>
+
+        {healthInfo ? (
+          <div className="space-y-4">
+            {/* OpenAI GPT-4o-mini */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">OpenAI GPT-4o-mini</h3>
+                  <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
+                    Primary
+                  </span>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  healthInfo.model_info.openai_available
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                }`}>
+                  {healthInfo.model_info.openai_available ? 'Available' : 'Unavailable'}
+                </span>
+              </div>
+              <div className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
+                <p><span className="font-medium">Model:</span> {healthInfo.model_info.openai_model || 'gpt-4o-mini'}</p>
+                <p><span className="font-medium">Use Case:</span> Tweet classification, AI chat assistant</p>
+                <p><span className="font-medium">Features:</span> High accuracy, multilingual support (English, Swahili, Sheng)</p>
+              </div>
+            </div>
+
+            {/* Sklearn Model */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <div className={`w-3 h-3 rounded-full ${healthInfo.model_info.sklearn_loaded ? 'bg-blue-500' : 'bg-gray-400'}`}></div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Sklearn Classifier</h3>
+                  <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">
+                    Fallback
+                  </span>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  healthInfo.model_info.sklearn_loaded
+                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                    : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                }`}>
+                  {healthInfo.model_info.sklearn_loaded ? 'Loaded' : 'Not Loaded'}
+                </span>
+              </div>
+              <div className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
+                <p><span className="font-medium">Type:</span> {healthInfo.model_info.sklearn_model_type || 'Machine Learning Classifier'}</p>
+                <p><span className="font-medium">Use Case:</span> Offline classification, fallback when OpenAI unavailable</p>
+                <p><span className="font-medium">Features:</span> Fast inference, no API dependency</p>
+              </div>
+            </div>
+
+            <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+              <p className="text-sm text-purple-800 dark:text-purple-200">
+                <strong>How it works:</strong> The system primarily uses OpenAI GPT-4o-mini for accurate classification with reasoning. If OpenAI is unavailable, it automatically falls back to the sklearn model for uninterrupted service.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-4">
+            <p className="text-gray-500 dark:text-gray-400">
+              No model information available. Ensure API is running and accessible.
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* Chatbot Status */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex items-center space-x-3 mb-4">
-          <span className="text-2xl">💾</span>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">🤖 Chatbot Status</h2>
+          <MessageSquare className="w-6 h-6 text-blue-500" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">AI Assistant Status</h2>
         </div>
 
         {chatStatus ? (
           <div className="space-y-4">
-            <StatusBadge type={chatStatus.rasa_available ? "success" : "warning"}>
+            <StatusBadge type={chatStatus.openai_available ? "success" : "warning"}>
               <strong>
-                {chatStatus.rasa_available ? "Advanced AI Mode Active" : "Fallback Mode Active"}
-              </strong> - {chatStatus.rasa_available ? "Full Rasa integration available" : "Using intelligent fallback responses"}
+                {chatStatus.openai_available ? "GPT-4o-mini Mode Active" : "Fallback Mode Active"}
+              </strong> - {chatStatus.openai_available ? "Full AI assistant capabilities" : "Using classification-based responses"}
             </StatusBadge>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Rasa Server Status</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Assistant Configuration</h3>
                 <div className="space-y-2 text-sm">
                   <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-medium text-gray-900 dark:text-white">Rasa Available:</span>
+                    <span className="font-medium text-gray-900 dark:text-white">OpenAI Available:</span>
                     <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                      chatStatus.rasa_available
+                      chatStatus.openai_available
                         ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                         : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
                     }`}>
-                      {chatStatus.rasa_available ? 'Online' : 'Offline'}
+                      {chatStatus.openai_available ? 'Yes' : 'No'}
                     </span>
                   </p>
                   <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-medium text-gray-900 dark:text-white">Overall Status:</span>
+                    <span className="font-medium text-gray-900 dark:text-white">Model:</span> {chatStatus.model}
+                  </p>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    <span className="font-medium text-gray-900 dark:text-white">Status:</span>
                     <span className="ml-2 px-2 py-1 rounded text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                       {chatStatus.status}
                     </span>
@@ -257,11 +323,11 @@ const SimpleSystemInfo: React.FC = () => {
               </div>
 
               <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Current Mode</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Capabilities</h3>
                 <div className="space-y-2 text-sm">
                   <p className="text-gray-700 dark:text-gray-300">
                     <span className="font-medium text-gray-900 dark:text-white">Mode:</span>
-                    {chatStatus.rasa_available ? " Advanced AI" : " Intelligent Fallback"}
+                    {chatStatus.openai_available ? " Advanced AI Chat" : " Smart Fallback"}
                   </p>
                   <p className="text-gray-700 dark:text-gray-300">
                     <span className="font-medium text-gray-900 dark:text-white">Fallback Active:</span>
@@ -279,9 +345,9 @@ const SimpleSystemInfo: React.FC = () => {
 
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <p className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>💡 How it works:</strong> {chatStatus.rasa_available
-                  ? "The chatbot is running in Advanced AI Mode with full Rasa integration, providing sophisticated conversational AI responses."
-                  : "The chatbot is using Intelligent Fallback Mode, analyzing your messages with ML models and providing smart, contextual responses based on tweet classification."
+                <strong>How it works:</strong> {chatStatus.openai_available
+                  ? "The AI assistant uses GPT-4o-mini to provide intelligent, context-aware responses about Safaricom services. It understands English, Swahili, and Sheng."
+                  : "The assistant uses ML classification to understand your message category and provides helpful pre-configured responses based on the detected issue type."
                 }
               </p>
             </div>
@@ -289,70 +355,97 @@ const SimpleSystemInfo: React.FC = () => {
         ) : (
           <div className="space-y-4">
             <StatusBadge type="error">
-              <strong>Chatbot Status Unknown</strong> - Unable to connect to chatbot service
+              <strong>Assistant Status Unknown</strong> - Unable to connect to chatbot service
             </StatusBadge>
 
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Unable to determine chatbot status. Ensure the FastAPI backend is running and accessible.
+                Unable to determine assistant status. Ensure the FastAPI backend is running and accessible.
               </p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Model Details */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-        <div className="flex items-center space-x-3 mb-4">
-          <span className="text-2xl">🧠</span>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">🧠 Model Details</h2>
-        </div>
-
-        {modelInfo ? (
-          <div className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Transformer Model</h3>
-                <div className="space-y-2 text-sm">
-                  <p className="text-gray-700 dark:text-gray-300"><span className="font-medium text-gray-900 dark:text-white">Type:</span> {modelInfo.transformer_model_type || 'Not Available'}</p>
-                  <p className="text-gray-700 dark:text-gray-300"><span className="font-medium text-gray-900 dark:text-white">Classes:</span></p>
-                  {modelInfo.transformer_classes ? (
-                    <div className="ml-4 space-y-1">
-                      {Object.values(modelInfo.transformer_classes).map((className, index) => (
-                        <div key={index} className="text-xs bg-white dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-2 py-1 rounded">
-                          {className}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="ml-4 text-gray-500 dark:text-gray-400">Not Available</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Sklearn Model</h3>
-                <div className="space-y-2 text-sm">
-                  <p className="text-gray-700 dark:text-gray-300"><span className="font-medium text-gray-900 dark:text-white">Type:</span> {modelInfo.sklearn_model_type || 'Not Available'}</p>
-                  <p className="text-gray-700 dark:text-gray-300"><span className="font-medium text-gray-900 dark:text-white">Status:</span> {modelInfo.sklearn_model_type ? 'Active' : 'Not Loaded'}</p>
-                </div>
-              </div>
-            </div>
+      {/* Classification Categories */}
+      {modelInfo && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <BarChart3 className="w-6 h-6 text-orange-500" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Classification Categories</h2>
           </div>
-        ) : (
-          <div className="text-center py-4">
-            <p className="text-gray-500 dark:text-gray-400">
-              No model information available. Ensure API is running and accessible.
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {modelInfo.config.categories.map((category, index) => (
+              <div
+                key={index}
+                className="bg-gray-50 dark:bg-gray-700 rounded-lg px-4 py-3 text-sm font-medium text-gray-800 dark:text-gray-200 flex items-center space-x-2"
+              >
+                <span className={`w-2 h-2 rounded-full ${
+                  category === 'Hate Speech' ? 'bg-red-500' :
+                  category === 'Neutral' ? 'bg-gray-400' :
+                  category.includes('MPESA') ? 'bg-green-500' :
+                  category.includes('Network') ? 'bg-yellow-500' :
+                  category.includes('Customer') ? 'bg-blue-500' :
+                  category.includes('Data') ? 'bg-purple-500' :
+                  'bg-orange-500'
+                }`}></span>
+                <span>{category}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+            <p className="text-sm text-orange-800 dark:text-orange-200">
+              <strong>Note:</strong> These are the 7 categories used for classifying tweets about Safaricom services. The AI models are trained to accurately identify complaints, hate speech, and neutral messages.
             </p>
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Performance Features */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex items-center space-x-3 mb-4">
+          <Zap className="w-6 h-6 text-yellow-500" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Performance Features</h2>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Concurrent Batch Processing</h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              Batch analysis uses asyncio.gather() for parallel processing, providing up to 10x faster results when analyzing multiple tweets.
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-br from-cyan-50 to-sky-50 dark:from-cyan-900/20 dark:to-sky-900/20 border border-cyan-200 dark:border-cyan-800 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Thread Pool Optimization</h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              10 concurrent workers handle API requests efficiently, ensuring fast response times even under heavy load.
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Lazy Model Loading</h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              Models are loaded on-demand with LRU caching, minimizing memory usage and startup time.
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Automatic Fallback</h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              If OpenAI API is unavailable, the system seamlessly falls back to sklearn for uninterrupted service.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* App Statistics */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex items-center space-x-3 mb-4">
-          <span className="text-2xl">🕐</span>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">📈 App Statistics</h2>
+          <BarChart3 className="w-6 h-6 text-indigo-500" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">App Statistics</h2>
         </div>
 
         <div className="grid md:grid-cols-3 gap-4">
@@ -372,9 +465,9 @@ const SimpleSystemInfo: React.FC = () => {
 
           <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
             <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-              1.0.0
+              4.0.0
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">App Version</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">API Version</div>
           </div>
         </div>
 

@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState } from 'react';
+import { ModelType } from '../services/api';
 
 interface ApiContextType {
-  modelChoice: 'Transformer' | 'Sklearn';
-  setModelChoice: (model: 'Transformer' | 'Sklearn') => void;
+  modelChoice: ModelType;
+  setModelChoice: (model: ModelType) => void;
 }
 
 const ApiContext = createContext<ApiContextType | undefined>(undefined);
@@ -16,7 +17,8 @@ export const useApi = () => {
 };
 
 export const ApiProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [modelChoice, setModelChoice] = useState<'Transformer' | 'Sklearn'>('Transformer');
+  // Default to OpenAI as the primary model
+  const [modelChoice, setModelChoice] = useState<ModelType>('OpenAI');
 
   return (
     <ApiContext.Provider value={{ modelChoice, setModelChoice }}>
