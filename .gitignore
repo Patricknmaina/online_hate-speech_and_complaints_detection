@@ -18,6 +18,7 @@ __pycache__/
 # virtual documents
 .virtual_documents/
 =4.2.0
+.python-version
 
 # datasets
 data/cleaned_safaricom_data_v2.csv
@@ -45,26 +46,15 @@ FastAPI/.env
 FastAPI/RENDER_DEPLOYMENT_GUIDE.md
 DEPLOYMENT_GUIDE.md
 
-# uv files
-.python-version
+# Terraform
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.backup
+infra/terraform.tfvars
+# infra/.terraform.lock.hcl
+
+# UV files
 uv.lock
 
-# pem files
-*.pem
-
-# pytest and lint files
-.pytest_cache/
-.ruff_cache/
-
-# dev container
-.devcontainer/
-
-# chatbot
-AI_powered_chatbot/
-
-# project notebook
-patrick.ipynb
-
-# render files
-render.yaml
-run.sh
+# AWS EC2 instance files
+safarimeter-key.pem
