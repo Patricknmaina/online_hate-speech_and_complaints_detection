@@ -1,0 +1,5 @@
+# Your public IP for SSH access (find it at https://checkip.amazonaws.com)
+allowed_ssh_ip = "YOUR_PUBLIC_IP/32"
+
+# OpenAI API key (leave empty to use USE_SKLEARN_ONLY=true mode)
+openai_api_key = ""
