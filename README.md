@@ -2,214 +2,16 @@
 
 ## **Project Overview**
 
-Safarimeter is an AI-powered system designed to classify tweets mentioning Safaricom, Kenya's largest telecommunications company. The platform identifies customer complaints, categorizes issues (network, MPESA, billing, etc.), and detects hate speech or abusive content.
+This project tackles the challenge of **automatically detecting and classifying hate speech and customer complaints** directed at **Safaricom** on Twitter (X).
 
-**Key Features:**
-- **OpenAI GPT-4o-mini Integration** for intelligent classification and conversational AI
-- **Automated CI/CD Pipelines** for frontend, backend, and Docker deployments
-- **AWS EC2 Deployment** for scalable backend hosting
-- **Real-time Tweet Classification** with confidence scores and probability distributions
+Using a combination of **traditional machine learning models** and **state-of-the-art transformer architectures (XLM-RoBERTa, mBERT)**, the system categorizes tweets into actionable labels. By enabling **real-time monitoring and analysis**, it empowers Safaricom to:
 
-**Live Demo:** [Safarimer App](https://safarimeter.netlify.app)
+* Improve **customer care efficiency**
+* Enhance **brand protection**
+* Support a **healthier online environment**
 
-## **Architecture**
+The project is deployed as a **full-stack NLP application** with a **React + Tailwind CSS frontend** (hosted on Netlify), a **FastAPI inference backend** (deployed on AWS EC2), **Hugging Face-hosted transformer models**, and a **Rasa-powered AI chatbot** for conversational triage.
 
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                        SAFARIMETER ARCHITECTURE                          │
-├──────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│   ┌──────────────┐      ┌──────────────┐      ┌──────────────┐           │
-│   │  React + TS  │      │   FastAPI    │      │  OpenAI API  │           │
-│   │   Frontend   │─────▶│   Backend    │─────▶│  GPT-4o-mini │          │
-│   │  (Netlify)   │      │  (AWS EC2)   │      │              │           │
-│   └──────────────┘      └──────┬───────┘      └──────────────┘           │
-│                                │                                         │
-│                                ▼                                         │
-│                       ┌──────────────┐                                   │
-│                       │ Sklearn Model│                                   │
-│                       │  (Fallback)  │                                   │
-│                       └──────────────┘                                   │
-│                                                                          │
-│   ┌──────────────────────────────────────────────────────────────┐       │
-│   │                   GitHub Actions CI/CD                        │      │
-│   │  • Frontend: Build, Lint, TypeCheck → Deploy to Netlify      │       │
-│   │  • Backend: Lint, Test, Coverage → Deploy to AWS EC2         │       │
-│   │  • Docker: Build & Push to GitHub Container Registry         │       │
-│   └──────────────────────────────────────────────────────────────┘       │
-│                                                                          │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-### **Component Breakdown**
-
-| Component | Technology | Deployment |
-|-----------|------------|------------|
-| Frontend | React 20, TypeScript, Tailwind CSS, Vite | Netlify |
-| Backend | FastAPI, Python 3.12, OpenAI SDK | AWS EC2 |
-| Primary AI | OpenAI GPT-4o-mini | OpenAI API |
-| Fallback AI | Scikit-learn (Logistic Regression) | Local model |
-| Chatbot | OpenAI-powered AI Assistant | Integrated |
-| CI/CD | GitHub Actions | Automated |
-| Container Registry | GitHub Container Registry (ghcr.io) | Docker |
-
-## **Tech Stack**
-
-### **Frontend**
-- **React 20** with TypeScript
-- **Tailwind CSS** for styling
-- **Vite** for build tooling
-
-### **Backend**
-- **FastAPI** with async support for model endpoints
-- **OpenAI SDK** for GPT-4o-mini integration
-- **Scikit-learn** for fallback classification
-- **NLTK** for text preprocessing
-- **Pydantic** for data validation
-- **Pytest** for running unit tests
-
-### **DevOps & Infrastructure**
-- **GitHub Actions** for CI/CD pipelines
-- **Docker** with multi-stage builds
-- **AWS EC2** for backend hosting (with Supervisor for process management)
-- **Netlify** for frontend hosting
-- **GitHub Container Registry** for Docker images
-
-## **AI Models**
-
-### **Primary: OpenAI GPT-4o-mini**
-
-The system primarily uses OpenAI's GPT-4o-mini for:
-- **Tweet Classification**: Accurate categorization with reasoning
-- **Confidence Scoring**: 0.0 to 1.0 confidence values
-- **AI Chat Assistant**: Context-aware Safaricom customer service responses
-
-**Configuration:**
-```
-.env
-OPENAI_MODEL=gpt-4o-mini
-USE_SKLEARN_ONLY=false  # Set to true to disable OpenAI
-```
-
-### **Fallback: Scikit-learn**
-
-When OpenAI is unavailable, the system automatically falls back to:
-- **Logistic Regression** classifier
-- **TF-IDF Vectorization**
-- Pre-trained on labeled Safaricom tweets
-
-### **Classification Categories**
-
-| Category | Description |
-|----------|-------------|
-| Customer care complaint | Issues with Safaricom staff or service |
-| MPESA complaint | Mobile money transaction problems |
-| Network reliability problem | Signal, call, or SMS issues |
-| Internet or airtime bundle complaint | Data/airtime package issues |
-| Data protection and privacy concern | Privacy-related concerns |
-| Neutral | General comments without complaints |
-| Hate Speech | Abusive or discriminatory content |
-
-## **CI/CD Pipeline**
-
-The project uses **GitHub Actions** for automated testing, building, and deployment.
-
-### **1. Backend CI/CD** (`.github/workflows/backend.yml`)
-
-**Triggers:**
-```
-Push/PR to main on FastAPI/**, data_prep/**, requirements.txt, pyproject.toml
-```
-
-| Job | Steps |
-|-----|-------|
-| **Lint** | Setup Python 3.12, Install Ruff, Run linter on FastAPI/ and data_prep/ |
-| **Test** | Install dependencies, Run pytest with coverage, Upload to Codecov |
-| **Deploy** | SSH to AWS EC2, Pull latest code, Update dependencies, Restart Supervisor |
-
-### **2. Frontend CI/CD** (`.github/workflows/frontend.yml`)
-
-**Triggers:**
-```
-Push/PR to main on frontend/**
-```
-
-| Job | Steps |
-|-----|-------|
-| **Build** | Setup Node.js 20, Install deps, ESLint, TypeScript check, Build with Vite |
-| **Deploy** | Download artifacts, Deploy to Netlify (production) |
-
-### **3. Docker CI** (`.github/workflows/docker.yml`)
-
-**Triggers:**
-```
-Push to main on Dockerfile, FastAPI/**, data_prep/**, requirements.txt
-```
-
-| Job | Steps |
-|-----|-------|
-| **Build & Push** | Login to GHCR, Extract metadata, Setup Buildx, Build & push with caching |
-
-**Image Tags:**
-- ghcr.io/patricknmaina/online_hate-speech_and_complaints_detection:latest
-- ghcr.io/patricknmaina/online_hate-speech_and_complaints_detection:<sha>
-
-### **Required GitHub Secrets**
-
-| Secret | Purpose |
-|--------|---------|
-| `OPENAI_API_KEY` | OpenAI API authentication |
-| `NETLIFY_AUTH_TOKEN` | Netlify deployment |
-| `NETLIFY_SITE_ID` | Netlify site identifier |
-| `AWS_EC2_HOST` | AWS EC2 instance IP/hostname |
-| `AWS_EC2_SSH_KEY` | SSH private key for EC2 access |
-| `VITE_API_BASE_URL` | Backend API URL for frontend |
-
-## **Deployment**
-
-### **Backend (AWS EC2)**
-
-The FastAPI backend is deployed on AWS EC2 with Supervisor for process management:
-
-```
-# SSH into EC2
-ssh -i your-key.pem ubuntu@your-ec2-ip
-
-# Service managed by Supervisor
-sudo supervisorctl status safarimeter
-sudo supervisorctl restart safarimeter
-```
-
-**EC2 Setup:**
-- Ubuntu instance with Python 3.12
-  - Instance type: `t3.micro`
-- Supervisor for process management
-- Virtual environment for dependencies
-- Auto-deployment via GitHub Actions
-
-### **Frontend (Netlify)**
-
-The React frontend is auto-deployed to Netlify on push to `main`:
-
-- **Production URL:** [https://safarimeter.netlify.app](https://safarimeter.netlify.app)
-- **Build Command:** `npm run build`
-- **Publish Directory:** `frontend/dist`
-
-### **Docker Deployment**
-
-```
-# Pull from GitHub Container Registry
-docker pull ghcr.io/patricknmaina/online_hate-speech_and_complaints_detection:latest
-
-# Run container
-docker run -p 8000:8000 \
-  -e OPENAI_API_KEY=your-key \
-  -e USE_SKLEARN_ONLY=false \
-  ghcr.io/patricknmaina/online_hate-speech_and_complaints_detection:latest
-
-# Docker compose
-docker-compose up --build
-```
 ## **Dataset**
 
 * **Source:** 6,146 tweets scraped using **N8N** and **TwitterAPI.io**
@@ -224,82 +26,262 @@ docker-compose up --build
   * Neutral
   * Hate Speech
 
-## **API Endpoints**
+## **Problem Statement**
 
-### **Health & Status**
+Safaricom faces challenges in:
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Health check with system info |
-| GET | `/health` | Simple health check |
-| GET | `/model/info` | Model configuration details |
-| GET | `/chat/status` | Chatbot availability status |
+* Handling **large volumes** of tweets mentioning its services.
+* **Separating genuine complaints** from **hateful or abusive speech**.
+* Managing **multilingual, informal, and context-dependent** communication common on Kenyan social media.
 
-### **Prediction**
+Manual moderation is **slow, error-prone, and costly**. An automated system is needed to provide **scalable, accurate, and real-time tweet classification**.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/predict` | Sklearn model prediction |
-| POST | `/predict/openai` | OpenAI prediction with fallback |
-| POST | `/predict/batch` | Batch sklearn predictions |
-| POST | `/predict/openai/batch` | Batch OpenAI predictions |
+## **Business & Project Objectives**
 
-### **Chat**
+* Provide **real-time visibility** into customer sentiment and hostility on Twitter.
+* Enable Safaricom to **prioritize urgent issues** (e.g., MPESA outages).
+* Support **brand reputation management** by flagging hate speech early.
+* Detect and flag **hate speech** and **complaints** in real-time.
+* Accurately distinguish between **negative feedback** and **harmful speech**.
+* Enable **proactive customer care** through automated classification.
+* Support **scalability** by integrating ML & Transformer models into production pipelines.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/chat` | AI assistant chat endpoint |
+## **Exploratory Data Analysis (EDA)**
 
-## **Local Development**
+We conducted thorough EDA to understand data distribution and inform modeling:
 
-### **Prerequisites**
-- Python 3.12+
-- Node.js 20+
-- Docker (optional)
+* **Class imbalance** observed (neutral tweets dominate).
+* **Tweet length distribution** varied widely.
+* **Word frequency analysis** revealed key terms in complaints (e.g., "MPESA", "network", "data").
 
-### **1. Clone Repository**
+Key Visualizations:
+
+* **Label distribution**
+![download%20%281%29.png](images/labels_distribution.png)
+
+* **Tweet length histogram**
+![Picture1.png](images/tweet_length_distribution.png)
+
+* **Word cloud (customer care-related terms, hate speech indicators)**
+![download 2.png](images/customer_care_wordcloud.png)
+
+## **Data Cleaning & Preprocessing**
+
+We developed a **custom TweetPreprocessor class** to streamline preprocessing:
+
+### **Data Cleaning**
+
+* Remove URLs, mentions, hashtags, emojis, repeated characters.
+* Expand contractions (e.g., "can't" -> "cannot").
+* Normalize punctuation and whitespace.
+
+### **Text Preprocessing**
+
+* Lowercasing
+* Tokenization
+* Stopword removal
+* Lemmatization
+
+### **Feature Extraction**
+
+* TF-IDF Vectorization
+* Count Vectorization
+* Configurable n-gram and vocabulary settings
+
+The pipeline is **scikit-learn compatible** for seamless ML integration.
+
+## **Modeling Approach**
+
+### **Classical ML Models (Baseline)**
+
+* Logistic Regression
+* Naive Bayes
+* Random Forest
+
+### **Transformer Models (Deep Learning)**
+
+* **mBERT** (fine-tuned, deployed default for smaller footprint)
+* **XLM-RoBERTa** (fine-tuned)
+
+**Evaluation Metrics:** Accuracy, Precision, Recall, F1-score
+
+## **Model Evaluation Results**
+
+| Model               | Accuracy   | Precision  | Recall     | F1-score   |
+| ------------------- | ---------- | ---------- | ---------- | ---------- |
+| Logistic Regression | 0.6959     | 0.7151     | 0.6959     | 0.7027     |
+| Naive Bayes         | 0.6846     | 0.6770     | 0.6846     | 0.6752     |
+| Random Forest       | 0.6886     | 0.6606     | 0.6886     | 0.6537     |
+| mBERT               | 0.7131     | 0.7266     | 0.7131     | 0.7185     |
+| **XLM-RoBERTa**     | **0.7885** | **0.7877** | **0.7885** | **0.7866** |
+
+**XLM-RoBERTa outperformed all baselines**, demonstrating strong multilingual handling and contextual understanding.
+
+## **Tech Stack**
+
+| Layer            | Technologies                                           |
+| ---------------- | ------------------------------------------------------ |
+| **Frontend**     | React, Tailwind CSS, TypeScript, Vite, Framer Motion   |
+| **Backend**      | FastAPI, Uvicorn, Pydantic                             |
+| **ML Models**    | Scikit-learn (Logistic Regression, NB, RF)             |
+| **Transformers** | Hugging Face (mBERT, XLM-RoBERTa)                     |
+| **Chatbot**      | Rasa                                                   |
+| **Infrastructure** | AWS EC2, Terraform, Nginx, Supervisor                |
+| **CI/CD**        | GitHub Actions, Codecov                                |
+| **Containers**   | Docker, GitHub Container Registry (GHCR)               |
+| **Hosting**      | Netlify (frontend), AWS EC2 (backend), Hugging Face Hub (models) |
+
+## **Deployment Architecture**
+
+![Application\_Architecture](images/streamlit_fastapi_model_workflow.png)
+
+### **1. Frontend (React + Tailwind CSS)**
+
+* Modern interface for tweet entry, single/batch analysis, and visualization.
+* Deployed to **Netlify** via GitHub Actions.
+* Pages: Home, Tweet Analysis, Batch Analysis, AI Assistant, System Info.
+
+### **2. Backend (FastAPI)**
+
+* Serves predictions from:
+  * **Scikit-learn models** (lightweight, fast) loaded from local `.pkl` files.
+  * **Transformer models** (mBERT/XLM-RoBERTa) via Hugging Face Hub or HF Inference API.
+* Deployed on **AWS EC2** (Ubuntu 22.04 LTS) with **Nginx** reverse proxy and **Supervisor** process management.
+* REST API endpoints for single & batch predictions (both sklearn and transformer), model management, system metrics, health checks, and AI chat.
+
+### **3. Model Hosting (Hugging Face Hub)**
+
+* Transformer models uploaded to **Hugging Face** for efficient loading.
+* Scikit-learn models serialized via joblib and stored locally.
+
+### **4. AI Chatbot (Rasa)**
+
+* Enables conversational triage: moderators can ask, *"Is this tweet hate speech?"*
+* Provides natural language responses backed by the FastAPI inference server.
+* Located in `AI_powered_chatbot/` with training data, config, and pre-trained models.
+
+### **5. Containerization (Docker)**
+
+* Multi-stage Docker build for minimal production image.
+* Images pushed to **GitHub Container Registry (GHCR)** via CI/CD.
+
+## **CI/CD Pipeline**
+
+The project uses **GitHub Actions** with three automated workflows:
+
+### **Backend** (`.github/workflows/backend.yml`)
+
+Triggers on pushes/PRs affecting `FastAPI/`, `data_prep/`, `requirements.txt`, or `pyproject.toml`.
 
 ```
-git clone https://github.com/Patricknmaina online_hate-speech_and_complaints_detection.git
+Lint (Ruff) --> Test (pytest + coverage) --> Deploy to AWS EC2
+```
+
+* **Lint:** Runs Ruff linter on `FastAPI/` and `data_prep/`.
+* **Test:** Runs pytest with coverage reporting, uploads results to Codecov.
+* **Deploy:** SSHs into EC2, pulls latest code, installs dependencies, and restarts the service via Supervisor.
+
+### **Frontend** (`.github/workflows/frontend.yml`)
+
+Triggers on pushes/PRs affecting `frontend/`.
+
+```
+Lint (ESLint) --> Type-check (tsc) --> Build (Vite) --> Deploy to Netlify
+```
+
+* **Build:** Runs ESLint, TypeScript type-checking, and Vite production build.
+* **Deploy:** Publishes built artifacts to Netlify (main branch only).
+
+### **Docker** (`.github/workflows/docker.yml`)
+
+Triggers on pushes to `main` affecting `Dockerfile`, `FastAPI/`, `data_prep/`, or `requirements.txt`.
+
+```
+Build Docker image --> Push to GitHub Container Registry
+```
+
+* Tags images with git SHA and `latest` (for main branch).
+* Uses GitHub Actions build cache for faster builds.
+
+## **Infrastructure Setup (Terraform/AWS)**
+
+The `infra/` directory contains Terraform configuration to provision the backend on AWS EC2.
+
+### **Prerequisites**
+
+* [Terraform](https://developer.hashicorp.com/terraform/install) installed
+* AWS CLI configured with valid credentials
+* SSH key pair at `~/.ssh/id_rsa` and `~/.ssh/id_rsa.pub`
+
+### **What Gets Provisioned**
+
+* **EC2 Instance** (Ubuntu 22.04 LTS, t3.micro by default)
+* **Security Group** with rules for SSH (restricted), HTTP (80), HTTPS (443), and FastAPI (8000)
+* **Nginx** reverse proxy (port 80 -> 8000)
+* **Supervisor** for process management and auto-restart
+* **Python 3.12 virtual environment** with project dependencies
+
+### **Setup Steps**
+
+```bash
+cd infra
+
+# 1. Create your variables file from the example
+cp terraform.tfvars.example terraform.tfvars
+
+# 2. Edit terraform.tfvars with your values
+#    - allowed_ssh_ip: your public IP (find at https://checkip.amazonaws.com)
+#    - openai_api_key: your OpenAI key (optional, leave empty for sklearn-only mode)
+
+# 3. Initialize Terraform
+terraform init
+
+# 4. Preview the infrastructure changes
+terraform plan
+
+# 5. Provision the infrastructure
+terraform apply
+
+# 6. After provisioning, Terraform outputs the public IP and SSH command
+#    Example output:
+#    public_ip   = "54.xxx.xxx.xxx"
+#    ssh_command = "ssh -i ~/.ssh/id_rsa ubuntu@54.xxx.xxx.xxx"
+#    api_url     = "http://54.xxx.xxx.xxx:8000"
+```
+
+### **Terraform Files**
+
+| File                       | Purpose                                              |
+| -------------------------- | ---------------------------------------------------- |
+| `provider.tf`              | AWS provider configuration (region: us-east-1)       |
+| `variables.tf`             | Input variables (region, instance type, SSH IP, etc.) |
+| `main.tf`                  | EC2 instance, security group, and key pair resources  |
+| `outputs.tf`               | Outputs: public IP, SSH command, API URL              |
+| `user_data.sh`             | Bootstrap script run on first launch                  |
+| `terraform.tfvars.example` | Example variable values                               |
+
+## **How to Run Locally**
+
+### 1. Clone Repo
+
+```bash
+git clone https://github.com/patricknmaina/online_hate-speech_and_complaints_detection.git
 cd online_hate-speech_and_complaints_detection
 ```
 
-### **2. Environment Setup**
-For this project, we setup the virtual environment using `uv`, an extremely fast python package manager. Installation instructions for Windows, Mac and Linux can be found [here](https://docs.astral.sh/uv/getting-started/installation/)
+### 2. Backend (FastAPI)
 
-```
-# =====Create the virtual environment=====
-uv sync # this will sync the uv setup in the repository, create the virtual environment and download all the required packages
-
-# =====Activate the virtual environment=====
-
-# windows
-source .venv/Scripts/activate
-
-# Linux/Mac
-source .venv/bin/activate
-
-# =====Configure environment variables=====
-
-# navigate to the FastAPI directory
-cd FastAPI/
-
-# create the .env file from .env.example
-cp .env.example .env
-
-# Edit .env with your OPENAI_API_KEY
-OPENAI_API_KEY = <your-openai-key>
-
-# =====Run the server=====
-python main.py
-# or
-uvicorn main:app --reload --port 8000
+```bash
+cd FastAPI
+pip install -r requirements.txt
+uvicorn main:app --reload
 ```
 
 **API runs at:** `http://localhost:8000`
 
-### **3. Frontend Setup**
-```
+### 3. Frontend (React + Tailwind CSS)
+
+```bash
 cd frontend
 
 # Install dependencies
@@ -318,12 +300,94 @@ npm run dev
 # Backend tests
 pytest tests/ -v --cov=FastAPI
 
-# Frontend linting
-cd frontend && npm run lint
-```
-## **Example API Usage**
+### 4. Using Docker
 
-### ***Single Prediction (OpenAI)***
+```bash
+# Build and start the backend container
+docker-compose up --build
+
+# The API will be available at http://localhost:8000
+```
+
+Environment variables can be configured in `docker-compose.yml` or via a `.env` file:
+* `HF_MODEL_REPO` - Hugging Face model repository (default: `patrickmaina/safaricom-hatespeech-detector`)
+* `USE_LIGHTWEIGHT_MODEL` - Use lightweight sklearn model (default: `true`)
+* `MAX_MEMORY_MB` - Maximum memory allocation (default: `2048`)
+
+## **Testing**
+
+The project includes a pytest test suite covering the FastAPI backend.
+
+### Running Tests
+
+```bash
+# Run all tests with verbose output and coverage
+pytest tests/ -v --cov=FastAPI
+
+# Run tests with coverage report
+pytest tests/ -v --cov=FastAPI --cov-report=xml
+```
+
+### Test Coverage
+
+| Test                          | Description                                  |
+| ----------------------------- | -------------------------------------------- |
+| `test_health_check`           | Verifies the `/` health endpoint             |
+| `test_model_info`             | Checks `/model/info` returns model status    |
+| `test_predict_sklearn`        | Tests single tweet prediction via `/predict`  |
+| `test_predict_sklearn_batch`  | Tests batch prediction via `/predict/batch`   |
+| `test_chat_status`            | Validates `/chat/status` endpoint             |
+| `test_predict_empty_text`     | Edge case: empty text input                   |
+| `test_predict_missing_text`   | Edge case: missing text field (422 expected)  |
+| `test_categories_in_prediction` | Validates prediction returns valid categories |
+
+## **API Endpoints**
+
+| Method | Endpoint                    | Description                                  |
+| ------ | --------------------------- | -------------------------------------------- |
+| GET    | `/`                         | Health check                                 |
+| GET    | `/health`                   | Health check (alias)                         |
+| GET    | `/health/detailed`          | Detailed health with memory & model status   |
+| GET    | `/model/info`               | Model information and loading status         |
+| POST   | `/predict`                  | Classify a single tweet (sklearn)            |
+| POST   | `/predict/batch`            | Classify multiple tweets (sklearn)           |
+| POST   | `/predict/transformer`      | Classify a single tweet (transformer model)  |
+| POST   | `/predict/transformer/batch`| Classify multiple tweets (transformer model) |
+| POST   | `/model/warm`               | Pre-load models into memory                  |
+| POST   | `/model/clear-cache`        | Clear cached models to free memory           |
+| GET    | `/metrics`                  | System metrics (CPU, memory, uptime)         |
+| GET    | `/chat/status`              | Check OpenAI/chat availability               |
+| POST   | `/chat`                     | Send a message to the AI chat assistant      |
+
+### Example: Sklearn Prediction
+
+**Request:**
+
+```json
+POST /predict
+{
+  "text": "Safaricom data bundles are too expensive!"
+}
+```
+
+**Response:**
+
+```json
+{
+  "text": "Safaricom data bundles are too expensive!",
+  "prediction": "Complaint",
+  "confidence": 0.87,
+  "probabilities": {
+    "Hate Speech": 0.02,
+    "Complaint": 0.87,
+    "Neutral": 0.05,
+    "Negative (not Hate Speech)": 0.04,
+    "Unknown": 0.02
+  }
+}
+```
+
+### Example: Transformer Prediction
 
 **Request:**
 ```
@@ -350,109 +414,32 @@ curl -X POST "http://localhost:8000/predict/openai" \
   "model_used": "openai"
 }
 ```
-### ***Chat Request***
 
-**Request:**
-```
-curl -X POST "http://localhost:8000/chat" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message": "My MPESA transaction is stuck",
-    "sender_id": "user123"
-  }'
-```
+## **Conclusion**
 
-**Response:**
-```
-{
-  "responses": [
-    {
-      "text": "I'm sorry to hear about your stuck MPESA transaction. Let me help you resolve this. First, please check if you received an SMS confirmation. If the transaction is still pending after 24 hours, you can dial *234# and select 'Reverse Transaction' or contact our support line at 100."
-    }
-  ],
-  "sender_id": "user123",
-  "timestamp": "2026-01-11T10:30:00Z",
-  "model_used": "openai"
-}
-```
-## **Environment Variables**
+This project demonstrates how **machine learning and transformers** can power real-world applications in customer engagement and brand protection.
 
-### **Backend (.env)**
-```
-# Server Configuration
-HOST=0.0.0.0
-PORT=8000
-LOG_LEVEL=INFO
+By combining:
 
-# OpenAI Configuration (Primary)
-OPENAI_API_KEY=sk-your-api-key
-OPENAI_MODEL=gpt-4o-mini
+* **Robust preprocessing**
+* **Hybrid ML + Transformer modeling**
+* **Interactive full-stack deployment**
+* **Automated CI/CD pipelines**
+* **Infrastructure-as-Code with Terraform**
 
-# Model Selection
-USE_SKLEARN_ONLY=false
+we provide Safaricom with a **scalable system** to monitor, classify, and respond to customer feedback and hate speech in real time.
 
-# Sklearn Fallback Models
-SKLEARN_MODEL_PATH=models/best_model.pkl
-VECTORIZER_PATH=models/vectorizer.pkl
-```
-
-### **Frontend (.env)**
-```
-VITE_API_BASE_URL=http://localhost:8000
-```
-## **Model Evaluation**
-
-### **Classical ML Models (Baseline)**
-
-| Model               | Accuracy | Precision | Recall   | F1-score |
-|---------------------|----------|-----------|----------|----------|
-|Logistic Regression  | 0.6959   | 0.7151    | 0.6959   | 0.7027   |
-| Naive Bayes         | 0.6846   | 0.6770    | 0.6846   | 0.6752   |
-| Random Forest       | 0.6886   | 0.6606    | 0.6886   | 0.6537   |
-
-### **Transformer Models**
-
-| Model           | Accuracy   | Precision  | Recall     | F1-score   |
-|-----------------|------------|------------|------------|------------|
-| mBERT           | 0.7131     | 0.7266     | 0.7131     | 0.7185     |
-| **XLM-RoBERTa** | **0.7885** | **0.7877** | **0.7885** | **0.7866** |
-
-### **OpenAI GPT-4o-mini**
-
-`GPT-4o-mini` provides superior classification accuracy with contextual understanding, especially for:
-- Multilingual content (English, Swahili, Sheng)
-- Nuanced sentiment detection
-- Context-aware hate speech identification
-
-## **Key Visualizations**
-
-* **Label Distribution**
-![Label Distribution](images/labels_distribution.png)
-
-* **Tweet Length Histogram**
-![Tweet Length Distribution](images/tweet_length_distribution.png)
-
-* **Word Cloud (Customer Care Terms)**
-![Word Cloud](images/customer_care_wordcloud.png)
-
-## **Data Pipeline**
-
-### **Data Cleaning & Preprocessing**
-
-Custom `TweetPreprocessor` class for streamlined preprocessing:
-
-1. **Data Cleaning:** Remove URLs, mentions, hashtags, emojis, repeated characters
-2. **Text Normalization:** Expand contractions, normalize punctuation
-3. **Tokenization:** Lowercasing, stopword removal, lemmatization
-4. **Feature Extraction:** TF-IDF Vectorization with configurable n-grams
+This lays a foundation for **AI-driven digital customer care**, aligning with Safaricom's vision of innovation and customer-centric service.
 
 ## **Future Work**
 
-- [ ] Real-time Twitter (X) stream integration
-- [ ] Dashboard analytics with historical trends
-- [ ] Webhook notifications for urgent issues
-- [ ] Real-time chatbot response to specific tweet on Twitter (X)
-
+* **Multilingual Expansion:** Incorporate Kiswahili, Sheng, and other regional languages for improved inclusivity.
+* **Model Distillation & Optimization:** Create lighter, faster transformer models for mobile and edge deployment.
+* **Streaming Integration:** Connect directly to Twitter API for real-time streaming classification.
+* **Advanced Explainability:** Add SHAP/LIME explainability for transparency in classification decisions.
+* **LLM Integration:** Explore larger generative models (e.g., GPT, LLaMA) for context-aware hate speech detection.
+* **Automated Escalation:** Integrate with ticketing/CRM tools for seamless escalation of critical complaints.
+* **Continuous Learning:** Set up pipelines to incorporate newly labeled tweets and retrain models automatically.
 
 ## **Contributing**
 
@@ -463,5 +450,4 @@ Custom `TweetPreprocessor` class for streamlined preprocessing:
 5. Open a Pull Request
 
 ## **License**
-
-MIT License - see [LICENSE](LICENSE) file for details
+MIT License - see LICENSE file for details
