@@ -41,7 +41,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_API_BASE_URL: /api
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -63,11 +63,11 @@ jobs:
           name: frontend-dist
           path: frontend/dist
 
-      - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v3
-        with:
-          publish-dir: './frontend/dist'
-          production-deploy: true
+      - name: Deploy to Vercel
+        run: |
+          npm install -g vercel
+          vercel deploy --prod --prebuilt --token ${{ secrets.VERCEL_TOKEN }}
+        working-directory: frontend
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
