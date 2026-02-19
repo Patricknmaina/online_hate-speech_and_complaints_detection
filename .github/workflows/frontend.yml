@@ -39,7 +39,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Install Vercel CLI
-        run: npm install -g vercel
+        run: npm install -g vercel@39
 
       - name: Pull Vercel project settings
         run: vercel pull --yes --environment=production --token ${{ secrets.VERCEL_TOKEN }}
@@ -75,7 +75,7 @@ jobs:
 
       - name: Deploy to Vercel
         run: |
-          npm install -g vercel
+          npm install -g vercel@39
           vercel deploy --prod --prebuilt --token ${{ secrets.VERCEL_TOKEN }}
         working-directory: frontend
         env:
