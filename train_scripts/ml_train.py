@@ -4,10 +4,15 @@
 Script to train the model and save it for the API to use.
 """
 
+import sys
+import os
+
+# Add project root to path so data_prep module is importable from any working directory
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import pandas as pd
 import numpy as np
 import joblib
-import os
 from data_prep.data_loader import DataLoader
 from data_prep.feature_engineering import FeatureEngineering
 from data_prep.modeling import Modeling
@@ -19,7 +24,7 @@ def train_and_save_model():
     print("Starting model training...")
     
     # Create models directory if it doesn't exist
-    os.makedirs("models", exist_ok=True)
+    os.makedirs("FastAPI/models", exist_ok=True)
     
     # Step 1: Load data
     print("\n1. Loading data...")
@@ -69,15 +74,15 @@ def train_and_save_model():
     print("\n4. Saving model and vectorizer...")
     
     # Save the best model
-    model_path = "models/best_model.pkl"
+    model_path = "FastAPI/models/best_model.pkl"
     joblib.dump(best_model, model_path)
     print(f"Model saved to {model_path}")
-    
+
     # Save the vectorizer
-    vectorizer_path = "models/vectorizer.pkl"
+    vectorizer_path = "FastAPI/models/vectorizer.pkl"
     joblib.dump(vectorizer, vectorizer_path)
     print(f"Vectorizer saved to {vectorizer_path}")
-    
+
     # Save model metadata
     metadata = {
         "best_model_name": best_model_name,
@@ -87,8 +92,8 @@ def train_and_save_model():
         "feature_count": len(vectorizer.vocabulary_) if vectorizer else None,
         "training_results": results
     }
-    
-    metadata_path = "models/model_metadata.pkl"
+
+    metadata_path = "FastAPI/models/model_metadata.pkl"
     joblib.dump(metadata, metadata_path)
     print(f"Model metadata saved to {metadata_path}")
     
