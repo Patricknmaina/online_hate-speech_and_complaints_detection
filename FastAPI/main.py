@@ -184,6 +184,12 @@ model_manager = ModelManager()
 async def lifespan(app: FastAPI):
     """Application lifespan management"""
     logger.info("Starting up API...")
+    try:
+        model_manager.get_sklearn_model()
+        model_manager.get_sklearn_vectorizer()
+        logger.info("Sklearn models preloaded successfully")
+    except Exception as e:
+        logger.warning(f"Could not preload sklearn models: {e}")
     yield
     logger.info("Shutting down API...")
     gc.collect()
