@@ -38,26 +38,8 @@ jobs:
       - name: TypeScript type-check
         run: npx tsc --noEmit
 
-      - name: Install Vercel CLI
-        run: npm install -g vercel@39
-
-      - name: Pull Vercel project settings
-        run: vercel pull --yes --environment=production --token ${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Build with Vercel
-        run: vercel build --prod --token ${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-dist
-          path: frontend/.vercel/output
+      - name: Build
+        run: npm run build
 
   deploy:
     needs: build
@@ -67,16 +49,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: frontend/.vercel/output
-
       - name: Deploy to Vercel
         run: |
           npm install -g vercel@39
-          vercel deploy --prod --prebuilt --token ${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }}
         working-directory: frontend
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
